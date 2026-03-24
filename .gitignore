@@ -11,3 +11,13 @@
 local.properties
 /app/build/
 /app/schemas/
+
+# Sensitive files
+id_rsa
+*.pem
+*.key
+
+# Legacy Flutter artifacts
+.dart_tool/
+.flutter-plugins*
+novel-reader/
