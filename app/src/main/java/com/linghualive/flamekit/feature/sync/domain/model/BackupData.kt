@@ -25,6 +25,7 @@ data class BookDto(
     val addedAt: Long = 0,
     val lastReadAt: Long? = null,
     val totalChapters: Int = 0,
+    val sourceUrl: String? = null,
 )
 
 @Serializable

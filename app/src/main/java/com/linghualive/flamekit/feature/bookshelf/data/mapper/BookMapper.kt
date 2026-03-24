@@ -13,6 +13,7 @@ fun BookEntity.toDomain(): Book = Book(
     addedAt = addedAt,
     lastReadAt = lastReadAt,
     totalChapters = totalChapters,
+    sourceUrl = sourceUrl,
 )
 
 fun Book.toEntity(): BookEntity = BookEntity(
@@ -25,4 +26,5 @@ fun Book.toEntity(): BookEntity = BookEntity(
     addedAt = addedAt,
     lastReadAt = lastReadAt,
     totalChapters = totalChapters,
+    sourceUrl = sourceUrl,
 )

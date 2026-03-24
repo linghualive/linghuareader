@@ -24,7 +24,11 @@ class ReadingPrefsDataStore @Inject constructor(
     val preferencesFlow: Flow<ReadingPreferences> = dataStore.data.map { prefs ->
         val raw = prefs[key]
         if (raw != null) {
-            json.decodeFromString<ReadingPreferences>(raw)
+            try {
+                json.decodeFromString<ReadingPreferences>(raw)
+            } catch (_: Exception) {
+                ReadingPreferences()
+            }
         } else {
             ReadingPreferences()
         }
@@ -37,7 +41,7 @@ class ReadingPrefsDataStore @Inject constructor(
     suspend fun update(transform: (ReadingPreferences) -> ReadingPreferences) {
         dataStore.edit { prefs ->
             val current = prefs[key]?.let {
-                json.decodeFromString<ReadingPreferences>(it)
+                try { json.decodeFromString<ReadingPreferences>(it) } catch (_: Exception) { null }
             } ?: ReadingPreferences()
             val updated = transform(current)
             prefs[key] = json.encodeToString(updated)
@@ -47,7 +51,11 @@ class ReadingPrefsDataStore @Inject constructor(
     val syncConfigFlow: Flow<SyncConfig> = dataStore.data.map { prefs ->
         val raw = prefs[syncConfigKey]
         if (raw != null) {
-            json.decodeFromString<SyncConfig>(raw)
+            try {
+                json.decodeFromString<SyncConfig>(raw)
+            } catch (_: Exception) {
+                SyncConfig()
+            }
         } else {
             SyncConfig()
         }
@@ -60,7 +68,7 @@ class ReadingPrefsDataStore @Inject constructor(
     suspend fun updateSyncConfig(transform: (SyncConfig) -> SyncConfig) {
         dataStore.edit { prefs ->
             val current = prefs[syncConfigKey]?.let {
-                json.decodeFromString<SyncConfig>(it)
+                try { json.decodeFromString<SyncConfig>(it) } catch (_: Exception) { null }
             } ?: SyncConfig()
             val updated = transform(current)
             prefs[syncConfigKey] = json.encodeToString(updated)

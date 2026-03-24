@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -67,6 +68,7 @@ class ReaderViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val autoPageTurner = AutoPageTurner()
+    private var contentSearchJob: Job? = null
 
     init {
         ttsManager.initialize()
@@ -328,7 +330,8 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun searchContent(keyword: String) {
-        viewModelScope.launch {
+        contentSearchJob?.cancel()
+        contentSearchJob = viewModelScope.launch {
             _readerState.update { it.copy(isSearching = true) }
             val results = contentSearchEngine.search(bookId, keyword)
             _searchResults.value = results

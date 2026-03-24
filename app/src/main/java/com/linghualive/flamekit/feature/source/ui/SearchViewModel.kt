@@ -12,9 +12,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
@@ -36,6 +39,9 @@ class SearchViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     private var searchJob: Job? = null
 
     init {
@@ -55,12 +61,21 @@ class SearchViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             _isSearching.value = true
             _results.value = emptyList()
+            _errorMessage.value = null
 
             val sources = repository.getEnabledSources()
-                .filter { it.lastCheckSuccess || it.lastCheckTime == 0L }
+                .filter { (it.lastCheckSuccess || it.lastCheckTime == 0L) && !it.searchUrl.isNullOrBlank() }
                 .sortedByDescending { it.lastCheckTime }
-            val semaphore = Semaphore(5) // Max 5 concurrent requests
+
+            if (sources.isEmpty()) {
+                _errorMessage.value = "没有可用的书源，请先添加书源"
+                _isSearching.value = false
+                return@launch
+            }
+
+            val semaphore = Semaphore(5)
             val allResults = mutableListOf<SearchResult>()
+            val mutex = Mutex()
 
             supervisorScope {
                 val jobs = sources.map { source ->
@@ -69,7 +84,7 @@ class SearchViewModel @Inject constructor(
                         try {
                             withTimeout(10_000) {
                                 val results = sourceExecutor.search(source, keyword)
-                                synchronized(allResults) {
+                                mutex.withLock {
                                     allResults.addAll(results)
                                     _results.value = allResults.toList()
                                 }

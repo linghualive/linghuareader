@@ -97,7 +97,7 @@ fun BookDetailScreen(
                             color = MaterialTheme.colorScheme.error,
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { /* retry handled by re-creating the screen */ }) {
+                        Button(onClick = { viewModel.loadDetail() }) {
                             Text("重试")
                         }
                     }

@@ -78,7 +78,7 @@ fun PageFlipView(
             .pointerInput(currentPage, nextPage, prevPage) {
                 detectTapGestures { offset ->
                     val third = size.width / 3f
-                    val centerYRange = size.height * 0.2f..size.height * 0.8f
+                    val centerYRange = size.height * 0.3f..size.height * 0.7f
                     when {
                         offset.y in centerYRange && offset.x in third..(third * 2) -> onTapCenter()
                         offset.x < third -> onPrevPage()

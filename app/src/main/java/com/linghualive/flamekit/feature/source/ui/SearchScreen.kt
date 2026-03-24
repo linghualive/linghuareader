@@ -40,6 +40,7 @@ fun SearchScreen(
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     Column(modifier = modifier.fillMaxSize()) {
         SearchBar(
@@ -74,6 +75,14 @@ fun SearchScreen(
 
         Box(modifier = Modifier.fillMaxSize()) {
             when {
+                errorMessage != null -> {
+                    Text(
+                        text = errorMessage ?: "",
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 isSearching && results.isEmpty() -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),

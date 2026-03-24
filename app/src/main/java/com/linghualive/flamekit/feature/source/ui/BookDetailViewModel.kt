@@ -41,7 +41,7 @@ class BookDetailViewModel @Inject constructor(
         loadDetail()
     }
 
-    private fun loadDetail() {
+    fun loadDetail() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
@@ -67,6 +67,7 @@ class BookDetailViewModel @Inject constructor(
                 filePath = bookUrl,
                 format = "ONLINE",
                 coverPath = bookDetail.coverUrl,
+                sourceUrl = sourceUrl,
             )
             bookRepository.addBook(book)
             _addedToShelf.value = true

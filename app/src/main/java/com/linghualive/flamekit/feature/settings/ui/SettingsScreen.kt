@@ -173,16 +173,30 @@ fun SettingsScreen(
                         SegmentedButton(
                             selected = prefs.pageMode == PageMode.SCROLL,
                             onClick = { viewModel.updatePageMode(PageMode.SCROLL) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 4),
                         ) {
                             Text("滚动")
                         }
                         SegmentedButton(
                             selected = prefs.pageMode == PageMode.HORIZONTAL_FLIP,
                             onClick = { viewModel.updatePageMode(PageMode.HORIZONTAL_FLIP) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 4),
                         ) {
                             Text("翻页")
+                        }
+                        SegmentedButton(
+                            selected = prefs.pageMode == PageMode.SIMULATION_FLIP,
+                            onClick = { viewModel.updatePageMode(PageMode.SIMULATION_FLIP) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 4),
+                        ) {
+                            Text("仿真")
+                        }
+                        SegmentedButton(
+                            selected = prefs.pageMode == PageMode.COVER_FLIP,
+                            onClick = { viewModel.updatePageMode(PageMode.COVER_FLIP) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 3, count = 4),
+                        ) {
+                            Text("覆盖")
                         }
                     }
                 },

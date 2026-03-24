@@ -2,6 +2,7 @@ package com.linghualive.flamekit.feature.reader.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,10 +22,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +56,7 @@ fun ReaderContent(
     when (pageMode) {
         PageMode.SCROLL -> ScrollReaderContent(
             content = content,
+            chapterTitle = chapterTitle,
             readerPrefs = readerPrefs,
             readerColors = readerColors,
             scrollPosition = scrollPosition,
@@ -61,6 +66,7 @@ fun ReaderContent(
         )
         PageMode.HORIZONTAL_FLIP -> PagerReaderContent(
             content = content,
+            chapterTitle = chapterTitle,
             readerPrefs = readerPrefs,
             readerColors = readerColors,
             scrollPosition = scrollPosition,
@@ -98,6 +104,7 @@ fun ReaderContent(
 @Composable
 private fun ScrollReaderContent(
     content: String,
+    chapterTitle: String,
     readerPrefs: ReadingPreferences,
     readerColors: ReaderColors,
     scrollPosition: Int,
@@ -131,8 +138,11 @@ private fun ScrollReaderContent(
             .pointerInput(onTapCenter) {
                 detectTapGestures { offset ->
                     val height = size.height.toFloat()
+                    val width = size.width.toFloat()
                     val tapY = offset.y
-                    if (tapY > height * 0.2f && tapY < height * 0.8f) {
+                    val tapX = offset.x
+                    if (tapY > height * 0.3f && tapY < height * 0.7f
+                        && tapX > width * 0.2f && tapX < width * 0.8f) {
                         onTapCenter()
                     }
                 }
@@ -142,13 +152,29 @@ private fun ScrollReaderContent(
             vertical = readerPrefs.marginVertical.dp,
         ),
     ) {
+        // Chapter title
+        if (chapterTitle.isNotBlank()) {
+            item {
+                Text(
+                    text = chapterTitle,
+                    style = TextStyle(
+                        fontSize = (readerPrefs.fontSize + 4).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = readerColors.textColor,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = (readerPrefs.fontSize * 1.2f).dp),
+                )
+            }
+        }
         itemsIndexed(paragraphs) { _, paragraph ->
             Text(
                 text = paragraph.trim(),
                 style = textStyle,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = (readerPrefs.fontSize * 0.6f).dp),
             )
         }
     }
@@ -158,6 +184,7 @@ private fun ScrollReaderContent(
 @Composable
 private fun PagerReaderContent(
     content: String,
+    chapterTitle: String,
     readerPrefs: ReadingPreferences,
     readerColors: ReaderColors,
     scrollPosition: Int,
@@ -172,19 +199,22 @@ private fun PagerReaderContent(
         val marginH = with(density) { readerPrefs.marginHorizontal.dp.toPx() }
         val marginV = with(density) { readerPrefs.marginVertical.dp.toPx() }
 
-        val usableHeight = pageHeightPx - marginV * 2
+        val usableHeight = pageHeightPx - marginV * 2 - with(density) { 24.dp.toPx() } // reserve space for page indicator
         val lineHeightSp = readerPrefs.fontSize * readerPrefs.lineSpacingMultiplier
         val lineHeightPx = with(density) { lineHeightSp.sp.toPx() }
         val linesPerPage = (usableHeight / lineHeightPx).toInt().coerceAtLeast(1)
 
         val usableWidth = pageWidthPx - marginH * 2
-        val charWidthPx = with(density) { readerPrefs.fontSize.sp.toPx() * 0.55f }
+        // CJK characters are full-width (~1.0x font size), Latin ~0.55x. Use 0.85x as compromise.
+        val charWidthPx = with(density) { readerPrefs.fontSize.sp.toPx() * 0.85f }
         val charsPerLine = (usableWidth / charWidthPx).toInt().coerceAtLeast(1)
-        val charsPerPage = linesPerPage * charsPerLine
 
-        val pages = remember(content, charsPerPage) {
-            if (content.isEmpty()) listOf("")
-            else content.chunked(charsPerPage)
+        val pages = remember(content, linesPerPage, charsPerLine, chapterTitle) {
+            paginateByLines(
+                content = if (chapterTitle.isNotBlank()) "$chapterTitle\n\n$content" else content,
+                linesPerPage = linesPerPage,
+                charsPerLine = charsPerLine,
+            )
         }
 
         val pagerState = rememberPagerState(
@@ -202,34 +232,89 @@ private fun PagerReaderContent(
             fontSize = readerPrefs.fontSize.sp,
             lineHeight = lineHeightSp.sp,
             color = readerColors.textColor,
+            textIndent = TextIndent(firstLine = (readerPrefs.paragraphIndent * readerPrefs.fontSize).sp),
         )
 
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(onTapCenter) {
-                    detectTapGestures { offset ->
-                        val height = size.height.toFloat()
-                        val tapY = offset.y
-                        if (tapY > height * 0.2f && tapY < height * 0.8f) {
-                            onTapCenter()
-                        }
-                    }
-                },
-        ) { page ->
-            Text(
-                text = pages.getOrElse(page) { "" },
-                style = textStyle,
+        Box(modifier = Modifier.fillMaxSize()) {
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        horizontal = readerPrefs.marginHorizontal.dp,
-                        vertical = readerPrefs.marginVertical.dp,
-                    ),
+                    .pointerInput(onTapCenter) {
+                        detectTapGestures { offset ->
+                            val height = size.height.toFloat()
+                            val width = size.width.toFloat()
+                            val tapY = offset.y
+                            val tapX = offset.x
+                            if (tapY > height * 0.3f && tapY < height * 0.7f
+                                && tapX > width * 0.2f && tapX < width * 0.8f) {
+                                onTapCenter()
+                            }
+                        }
+                    },
+            ) { page ->
+                Text(
+                    text = pages.getOrElse(page) { "" },
+                    style = textStyle,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            horizontal = readerPrefs.marginHorizontal.dp,
+                            vertical = readerPrefs.marginVertical.dp,
+                        ),
+                )
+            }
+
+            // Page indicator
+            Text(
+                text = "${pagerState.currentPage + 1} / ${pages.size}",
+                style = MaterialTheme.typography.labelSmall,
+                color = readerColors.secondaryText,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 4.dp),
             )
         }
     }
+}
+
+private fun paginateByLines(content: String, linesPerPage: Int, charsPerLine: Int): List<String> {
+    if (content.isEmpty()) return listOf("")
+    val paragraphs = content.split("\n")
+    val allLines = mutableListOf<String>()
+
+    for (paragraph in paragraphs) {
+        val trimmed = paragraph.trim()
+        if (trimmed.isEmpty()) continue
+        // Wrap paragraph into lines
+        var remaining = trimmed
+        while (remaining.isNotEmpty()) {
+            val lineLen = remaining.length.coerceAtMost(charsPerLine)
+            allLines.add(remaining.substring(0, lineLen))
+            remaining = remaining.substring(lineLen)
+        }
+        // Add empty line between paragraphs for spacing
+        allLines.add("")
+    }
+
+    // Remove trailing empty lines
+    while (allLines.isNotEmpty() && allLines.last().isEmpty()) {
+        allLines.removeAt(allLines.size - 1)
+    }
+
+    if (allLines.isEmpty()) return listOf("")
+
+    // Group lines into pages
+    val pages = mutableListOf<String>()
+    var i = 0
+    while (i < allLines.size) {
+        val endIndex = (i + linesPerPage).coerceAtMost(allLines.size)
+        val pageLines = allLines.subList(i, endIndex)
+        pages.add(pageLines.joinToString("\n"))
+        i = endIndex
+    }
+
+    return pages.ifEmpty { listOf("") }
 }
 
 @Composable

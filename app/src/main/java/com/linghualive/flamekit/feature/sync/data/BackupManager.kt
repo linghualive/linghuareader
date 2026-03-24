@@ -101,6 +101,7 @@ class BackupManager @Inject constructor(
                 addedAt = book.addedAt,
                 lastReadAt = book.lastReadAt,
                 totalChapters = book.totalChapters,
+                sourceUrl = book.sourceUrl,
             )
         }
         val bookmarks = bookmarkDao.getAllBookmarks().map { bm ->
@@ -175,6 +176,7 @@ class BackupManager @Inject constructor(
                 addedAt = dto.addedAt,
                 lastReadAt = dto.lastReadAt,
                 totalChapters = dto.totalChapters,
+                sourceUrl = dto.sourceUrl,
             )
             bookDao.insertBook(entity)
         }

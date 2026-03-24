@@ -10,4 +10,5 @@ data class Book(
     val addedAt: Long = System.currentTimeMillis(),
     val lastReadAt: Long? = null,
     val totalChapters: Int = 0,
+    val sourceUrl: String? = null,
 )

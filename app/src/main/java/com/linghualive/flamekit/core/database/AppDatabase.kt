@@ -29,7 +29,7 @@ import com.linghualive.flamekit.core.database.entity.SourceSubscriptionEntity
         SourceSubscriptionEntity::class,
         NoteEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -131,6 +131,12 @@ abstract class AppDatabase : RoomDatabase() {
                     )"""
                 )
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_bookId` ON `notes` (`bookId`)")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE books ADD COLUMN sourceUrl TEXT DEFAULT NULL")
             }
         }
     }
