@@ -62,6 +62,7 @@
 # Jsoup
 -keep class org.jsoup.** { *; }
 -keeppackagenames org.jsoup.nodes
+-dontwarn org.jspecify.annotations.NullMarked
 
 # juniversalchardet
 -keep class org.mozilla.universalchardet.** { *; }
