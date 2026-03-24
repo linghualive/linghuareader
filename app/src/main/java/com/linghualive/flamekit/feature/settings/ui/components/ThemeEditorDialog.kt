@@ -33,9 +33,9 @@ fun ThemeEditorDialog(
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf(currentTheme.name) }
-    var bgColor by remember { mutableStateOf(Color(currentTheme.backgroundColor.toULong())) }
-    var textColor by remember { mutableStateOf(Color(currentTheme.textColor.toULong())) }
-    var secondaryColor by remember { mutableStateOf(Color(currentTheme.secondaryTextColor.toULong())) }
+    var bgColor by remember { mutableStateOf(Color(currentTheme.backgroundColor.toInt())) }
+    var textColor by remember { mutableStateOf(Color(currentTheme.textColor.toInt())) }
+    var secondaryColor by remember { mutableStateOf(Color(currentTheme.secondaryTextColor.toInt())) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -101,9 +101,9 @@ fun ThemeEditorDialog(
                     onSave(
                         CustomReaderTheme(
                             name = name,
-                            backgroundColor = bgColor.value.toLong(),
-                            textColor = textColor.value.toLong(),
-                            secondaryTextColor = secondaryColor.value.toLong(),
+                            backgroundColor = bgColor.toArgb().toLong(),
+                            textColor = textColor.toArgb().toLong(),
+                            secondaryTextColor = secondaryColor.toArgb().toLong(),
                         )
                     )
                 },

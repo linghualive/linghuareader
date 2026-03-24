@@ -64,8 +64,7 @@ class SearchViewModel @Inject constructor(
             _errorMessage.value = null
 
             val sources = repository.getEnabledSources()
-                .filter { (it.lastCheckSuccess || it.lastCheckTime == 0L) && !it.searchUrl.isNullOrBlank() }
-                .sortedByDescending { it.lastCheckTime }
+                .filter { !it.searchUrl.isNullOrBlank() }
 
             if (sources.isEmpty()) {
                 _errorMessage.value = "没有可用的书源，请先添加书源"

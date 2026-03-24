@@ -7,7 +7,11 @@ import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -211,6 +215,15 @@ fun ReaderScreen(
                     chapterTitle = readerState.chapters.getOrNull(readerState.currentChapterIndex)?.title ?: "",
                 )
             }
+
+            // Status bar cover — prevents content from showing through the translucent status bar
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .windowInsetsTopHeight(WindowInsets.statusBars)
+                    .background(readerColors.background),
+            )
 
             // Toolbar overlay
             ReaderToolbar(

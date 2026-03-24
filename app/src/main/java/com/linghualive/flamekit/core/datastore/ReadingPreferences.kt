@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ReadingPreferences(
-    val fontSize: Int = 18,
+    val fontSize: Int = 24,
     val lineSpacingMultiplier: Float = 1.5f,
     val pageMode: PageMode = PageMode.SCROLL,
     val readerTheme: ReaderThemeType = ReaderThemeType.LIGHT,

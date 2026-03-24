@@ -28,7 +28,7 @@ class SourceHealthChecker @Inject constructor(
     suspend fun checkSource(source: BookSource): HealthResult {
         return try {
             val startTime = System.currentTimeMillis()
-            val results = sourceExecutor.search(source, "斗破苍穹")
+            val results = sourceExecutor.search(source, "test")
             val elapsed = System.currentTimeMillis() - startTime
             val healthy = results.isNotEmpty()
 
