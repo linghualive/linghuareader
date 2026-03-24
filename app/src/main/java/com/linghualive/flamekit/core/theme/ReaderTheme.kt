@@ -44,10 +44,19 @@ fun readerColorsFor(themeType: ReaderThemeType, customTheme: CustomReaderTheme? 
     )
     ReaderThemeType.CUSTOM -> {
         val theme = customTheme ?: CustomReaderTheme()
-        ReaderColors(
-            background = Color(theme.backgroundColor.toULong()),
-            textColor = Color(theme.textColor.toULong()),
-            secondaryText = Color(theme.secondaryTextColor.toULong()),
-        )
+        try {
+            ReaderColors(
+                background = Color(theme.backgroundColor.toULong()),
+                textColor = Color(theme.textColor.toULong()),
+                secondaryText = Color(theme.secondaryTextColor.toULong()),
+            )
+        } catch (_: Exception) {
+            // Fallback to light theme if custom color values are invalid
+            ReaderColors(
+                background = Color(0xFFFFFFFF),
+                textColor = Color(0xFF1C1B1F),
+                secondaryText = Color(0xFF49454F),
+            )
+        }
     }
 }

@@ -19,7 +19,10 @@ class ReadingPrefsDataStore @Inject constructor(
 ) {
     private val key = stringPreferencesKey("reading_preferences")
     private val syncConfigKey = stringPreferencesKey("sync_config")
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     val preferencesFlow: Flow<ReadingPreferences> = dataStore.data.map { prefs ->
         val raw = prefs[key]

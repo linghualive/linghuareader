@@ -25,6 +25,14 @@
 -keep class com.linghualive.flamekit.core.navigation.Screen { *; }
 -keep class com.linghualive.flamekit.core.navigation.Screen$* { *; }
 
+# Kotlin metadata needed for Compose Navigation type-safe routes
+-keep class kotlin.Metadata { *; }
+-keep @kotlinx.serialization.Serializable class * { *; }
+
+# Kotlinx serialization internals (R8 strips these causing runtime crashes)
+-keep class kotlinx.serialization.internal.** { *; }
+-keep class kotlinx.serialization.descriptors.** { *; }
+
 # Keep @Serializable data classes used in DataStore
 -keep class com.linghualive.flamekit.core.datastore.ReadingPreferences { *; }
 -keep class com.linghualive.flamekit.core.datastore.CustomReaderTheme { *; }
@@ -40,9 +48,14 @@
     public static ** valueOf(java.lang.String);
 }
 
-# Keep Hilt ViewModel factories
+# Keep Hilt ViewModel factories and generated code
 -keep class * extends androidx.lifecycle.ViewModel { *; }
 -keep class **_HiltModules* { *; }
+-keep class **_Factory { *; }
+-keep class **_HiltComponents* { *; }
+-keep class * { @dagger.* *; }
+-keep class * { @javax.inject.* *; }
+-keep class dagger.hilt.internal.** { *; }
 
 # Keep AppRelease (used in UpdateDialog, not @Serializable)
 -keep class com.linghualive.flamekit.feature.update.domain.model.AppRelease { *; }
