@@ -1,0 +1,23 @@
+[
+  {
+    "sourceUrl": "https://www.gutenberg.org",
+    "sourceName": "Project Gutenberg",
+    "sourceGroup": "Public Domain",
+    "sourceType": 0,
+    "enabled": true,
+    "searchUrl": "https://www.gutenberg.org/ebooks/search/?query={{key}}",
+    "searchList": "li.booklink",
+    "searchName": "span.title@text",
+    "searchAuthor": "span.subtitle@text",
+    "searchCover": "img.cover-thumb@src",
+    "searchBookUrl": "a.link@href",
+    "detailName": "h1[itemprop=name]@text",
+    "detailAuthor": "a[itemprop=creator]@text",
+    "detailCover": "img.cover-art@src",
+    "detailIntro": "div[about] p@text",
+    "tocList": "table.files a[type='text/html']",
+    "tocName": "@text",
+    "tocUrl": "@href",
+    "contentRule": "div.chapter@html || body@html"
+  }
+]
