@@ -14,9 +14,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class SortOrder {
+    RECENT,
+    TITLE,
+    ADDED,
+}
 
 @HiltViewModel
 class BookshelfViewModel @Inject constructor(
@@ -26,8 +33,19 @@ class BookshelfViewModel @Inject constructor(
     private val appUpdateChecker: AppUpdateChecker,
 ) : ViewModel() {
 
-    val books: StateFlow<List<Book>> = getBooksUseCase()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
+    val books: StateFlow<List<Book>> = combine(
+        getBooksUseCase(),
+        _sortOrder,
+    ) { books, order ->
+        when (order) {
+            SortOrder.RECENT -> books.sortedByDescending { it.lastReadAt ?: 0L }
+            SortOrder.TITLE -> books.sortedBy { it.title }
+            SortOrder.ADDED -> books.sortedByDescending { it.addedAt }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -51,6 +69,10 @@ class BookshelfViewModel @Inject constructor(
 
     fun dismissUpdate() {
         _availableUpdate.value = null
+    }
+
+    fun updateSortOrder(order: SortOrder) {
+        _sortOrder.value = order
     }
 
     fun importBook(uri: Uri) {

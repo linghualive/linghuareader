@@ -1,5 +1,6 @@
 package com.linghualive.flamekit.feature.settings.ui
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -25,6 +27,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -35,11 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.linghualive.flamekit.BuildConfig
 import com.linghualive.flamekit.core.datastore.PageMode
 import com.linghualive.flamekit.core.datastore.ReaderThemeType
+import com.linghualive.flamekit.core.datastore.ThemeMode
 import com.linghualive.flamekit.core.theme.readerColorsFor
 import com.linghualive.flamekit.feature.update.ui.UpdateDialog
 import kotlin.math.roundToInt
@@ -84,6 +87,49 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            // Appearance settings group
+            SectionHeader("外观")
+
+            // Theme mode
+            ListItem(
+                headlineContent = { Text("主题模式") },
+                supportingContent = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        val modes = listOf(
+                            ThemeMode.SYSTEM to "跟随系统",
+                            ThemeMode.LIGHT to "浅色",
+                            ThemeMode.DARK to "深色",
+                        )
+                        modes.forEach { (mode, label) ->
+                            FilterChip(
+                                selected = prefs.themeMode == mode,
+                                onClick = { viewModel.updateThemeMode(mode) },
+                                label = { Text(label) },
+                            )
+                        }
+                    }
+                },
+            )
+
+            // Dynamic color (Material You) — only on Android 12+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ListItem(
+                    headlineContent = { Text("动态配色") },
+                    supportingContent = { Text("跟随系统壁纸配色 (Material You)") },
+                    trailingContent = {
+                        Switch(
+                            checked = prefs.dynamicColor,
+                            onCheckedChange = { viewModel.updateDynamicColor(it) },
+                        )
+                    },
+                )
+            }
+
             // Reading settings group
             SectionHeader("阅读设置")
 

@@ -21,6 +21,8 @@ data class ReadingPreferences(
     val screenOrientation: ScreenOrientation = ScreenOrientation.AUTO,
     val contentCleanEnabled: Boolean = true,
     val customCleanRules: List<String> = emptyList(),
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val dynamicColor: Boolean = true,
 )
 
 @Serializable
@@ -45,6 +47,13 @@ enum class ScreenOrientation {
     AUTO,
     PORTRAIT,
     LANDSCAPE,
+}
+
+@Serializable
+enum class ThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK,
 }
 
 @Serializable

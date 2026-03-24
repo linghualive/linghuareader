@@ -1,28 +1,37 @@
 package com.linghualive.flamekit.feature.source.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -41,6 +50,18 @@ fun SearchScreen(
     val results by viewModel.results.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // Source filter
+    var selectedSource by remember { mutableStateOf<String?>(null) }
+    val sourceNames by remember(results) {
+        derivedStateOf { results.map { it.sourceName }.distinct() }
+    }
+    val filteredResults by remember(results, selectedSource) {
+        derivedStateOf {
+            if (selectedSource == null) results
+            else results.filter { it.sourceName == selectedSource }
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize()) {
         SearchBar(
@@ -73,6 +94,38 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {}
 
+        // Progress indicator
+        if (isSearching) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        // Source filter chips
+        if (sourceNames.size > 1) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item {
+                    FilterChip(
+                        selected = selectedSource == null,
+                        onClick = { selectedSource = null },
+                        label = { Text("全部") },
+                    )
+                }
+                items(sourceNames) { name ->
+                    FilterChip(
+                        selected = selectedSource == name,
+                        onClick = {
+                            selectedSource = if (selectedSource == name) null else name
+                        },
+                        label = { Text(name) },
+                    )
+                }
+            }
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             when {
                 errorMessage != null -> {
@@ -84,46 +137,65 @@ fun SearchScreen(
                     )
                 }
                 isSearching && results.isEmpty() -> {
-                    CircularProgressIndicator(
+                    Column(
                         modifier = Modifier.align(Alignment.Center),
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = "正在搜索...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 results.isEmpty() && query.isNotBlank() && !isSearching -> {
-                    Text(
-                        text = "未找到相关书籍",
+                    Column(
                         modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.SearchOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                        Text(
+                            text = "未找到相关书籍",
+                            modifier = Modifier.padding(top = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 results.isEmpty() -> {
-                    Text(
-                        text = "输入书名开始搜索",
+                    Column(
                         modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                        )
+                        Text(
+                            text = "输入书名开始搜索",
+                            modifier = Modifier.padding(top = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        if (isSearching) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(8.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
-                        items(results, key = { "${it.sourceUrl}::${it.bookUrl}" }) { result ->
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                    ) {
+                        items(filteredResults, key = { "${it.sourceUrl}::${it.bookUrl}" }) { result ->
                             SearchResultItem(
                                 result = result,
                                 onClick = { onBookClick(result.sourceUrl, result.bookUrl) },
                             )
-                            HorizontalDivider()
                         }
                     }
                 }

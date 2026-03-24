@@ -6,6 +6,7 @@ import com.linghualive.flamekit.core.datastore.PageMode
 import com.linghualive.flamekit.core.datastore.ReaderThemeType
 import com.linghualive.flamekit.core.datastore.ReadingPreferences
 import com.linghualive.flamekit.core.datastore.ReadingPrefsDataStore
+import com.linghualive.flamekit.core.datastore.ThemeMode
 import com.linghualive.flamekit.feature.update.data.AppUpdateChecker
 import com.linghualive.flamekit.feature.update.domain.model.AppRelease
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,6 +78,18 @@ class SettingsViewModel @Inject constructor(
     fun updatePageMode(mode: PageMode) {
         viewModelScope.launch {
             readingPrefsDataStore.update { it.copy(pageMode = mode) }
+        }
+    }
+
+    fun updateThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            readingPrefsDataStore.update { it.copy(themeMode = mode) }
+        }
+    }
+
+    fun updateDynamicColor(enabled: Boolean) {
+        viewModelScope.launch {
+            readingPrefsDataStore.update { it.copy(dynamicColor = enabled) }
         }
     }
 }
