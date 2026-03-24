@@ -19,12 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,17 +41,11 @@ fun ReaderToolbar(
     title: String,
     currentChapter: Int,
     totalChapters: Int,
-    isAutoPageTurning: Boolean,
     onBack: () -> Unit,
     onChapterList: () -> Unit,
     onBookmarkList: () -> Unit,
-    onAddBookmark: () -> Unit,
     onSettings: () -> Unit,
-    onTts: () -> Unit,
-    onAutoPageTurn: () -> Unit,
     onSeekChapter: (Int) -> Unit,
-    onSearch: () -> Unit,
-    onNoteList: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -120,60 +110,44 @@ fun ReaderToolbar(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onChapterList) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = "目录",
-                            tint = Color.White,
-                        )
-                    }
-                    IconButton(onClick = onBookmarkList) {
-                        Icon(
-                            Icons.Filled.Bookmark,
-                            contentDescription = "书签列表",
-                            tint = Color.White,
-                        )
-                    }
-                    IconButton(onClick = onAddBookmark) {
-                        Icon(
-                            Icons.Filled.BookmarkAdd,
-                            contentDescription = "添加书签",
-                            tint = Color.White,
-                        )
-                    }
-                    IconButton(onClick = onSearch) {
-                        Icon(
-                            Icons.Filled.Search,
-                            contentDescription = "搜索",
-                            tint = Color.White,
-                        )
-                    }
-                    IconButton(onClick = onNoteList) {
-                        Icon(
-                            Icons.Filled.EditNote,
-                            contentDescription = "笔记",
-                            tint = Color.White,
-                        )
-                    }
-                    IconButton(onClick = onAutoPageTurn) {
-                        Icon(
-                            Icons.Filled.Timer,
-                            contentDescription = "自动翻页",
-                            tint = if (isAutoPageTurning) Color.Yellow else Color.White,
-                        )
-                    }
-                    IconButton(onClick = onTts) {
-                        Icon(
-                            Icons.Filled.VolumeUp,
-                            contentDescription = "朗读",
-                            tint = Color.White,
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = "目录",
+                                tint = Color.White,
+                            )
+                            Text("目录", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                        }
                     }
                     IconButton(onClick = onSettings) {
-                        Icon(
-                            Icons.Filled.Settings,
-                            contentDescription = "设置",
-                            tint = Color.White,
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Filled.Palette,
+                                contentDescription = "主题",
+                                tint = Color.White,
+                            )
+                            Text("主题", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                    IconButton(onClick = onBookmarkList) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Filled.Bookmark,
+                                contentDescription = "书签",
+                                tint = Color.White,
+                            )
+                            Text("书签", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                    IconButton(onClick = onSettings) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Filled.FormatSize,
+                                contentDescription = "字体",
+                                tint = Color.White,
+                            )
+                            Text("字体", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             }

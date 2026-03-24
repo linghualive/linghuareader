@@ -218,22 +218,11 @@ fun ReaderScreen(
                 title = readerState.bookTitle,
                 currentChapter = readerState.currentChapterIndex,
                 totalChapters = readerState.chapters.size,
-                isAutoPageTurning = readerState.isAutoPageTurning,
                 onBack = onBack,
                 onChapterList = viewModel::toggleChapterList,
                 onBookmarkList = { showBookmarkList = true },
-                onAddBookmark = viewModel::addBookmark,
                 onSettings = viewModel::toggleSettingsPanel,
-                onTts = {
-                    viewModel.toggleTtsPanel()
-                    if (!readerState.showTtsPanel) {
-                        viewModel.startTts()
-                    }
-                },
-                onAutoPageTurn = viewModel::toggleAutoPageTurn,
                 onSeekChapter = viewModel::navigateToChapter,
-                onSearch = viewModel::toggleSearchSheet,
-                onNoteList = viewModel::toggleNoteList,
             )
         }
 

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.linghualive.flamekit.feature.bookshelf.ui.components.BookCard
 import com.linghualive.flamekit.feature.bookshelf.ui.components.EmptyBookshelf
+import com.linghualive.flamekit.feature.update.ui.UpdateDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +46,14 @@ fun BookshelfScreen(
 ) {
     val books by viewModel.books.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val availableUpdate by viewModel.availableUpdate.collectAsState()
+
+    availableUpdate?.let { release ->
+        UpdateDialog(
+            release = release,
+            onDismiss = viewModel::dismissUpdate,
+        )
+    }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
