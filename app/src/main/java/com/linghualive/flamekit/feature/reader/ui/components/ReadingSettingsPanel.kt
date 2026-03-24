@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,11 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -44,7 +44,7 @@ import com.linghualive.flamekit.feature.reader.engine.FontInfo
 import com.linghualive.flamekit.feature.settings.ui.components.ThemeEditorDialog
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ReadingSettingsPanel(
     prefs: ReadingPreferences,
@@ -175,10 +175,11 @@ fun ReadingSettingsPanel(
             // Page mode
             Column {
                 Text("翻页模式", style = MaterialTheme.typography.titleSmall)
-                SingleChoiceSegmentedButtonRow(
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     val modes = listOf(
                         PageMode.SCROLL to "滚动",
@@ -186,14 +187,12 @@ fun ReadingSettingsPanel(
                         PageMode.SIMULATION_FLIP to "仿真",
                         PageMode.COVER_FLIP to "覆盖",
                     )
-                    modes.forEachIndexed { index, (mode, label) ->
-                        SegmentedButton(
+                    modes.forEach { (mode, label) ->
+                        FilterChip(
                             selected = prefs.pageMode == mode,
                             onClick = { onPageModeChange(mode) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
-                        ) {
-                            Text(label)
-                        }
+                            label = { Text(label) },
+                        )
                     }
                 }
             }
@@ -202,22 +201,18 @@ fun ReadingSettingsPanel(
             if (fonts.isNotEmpty()) {
                 Column {
                     Text("字体", style = MaterialTheme.typography.titleSmall)
-                    SingleChoiceSegmentedButtonRow(
+                    FlowRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        fonts.take(4).forEachIndexed { index, fontInfo ->
-                            SegmentedButton(
+                        fonts.take(4).forEach { fontInfo ->
+                            FilterChip(
                                 selected = prefs.fontFamily == fontInfo.id,
                                 onClick = { onFontChange(fontInfo.id) },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = fonts.take(4).size,
-                                ),
-                            ) {
-                                Text(fontInfo.displayName)
-                            }
+                                label = { Text(fontInfo.displayName) },
+                            )
                         }
                     }
                 }
@@ -226,24 +221,23 @@ fun ReadingSettingsPanel(
             // Screen orientation
             Column {
                 Text("屏幕方向", style = MaterialTheme.typography.titleSmall)
-                SingleChoiceSegmentedButtonRow(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     val orientations = listOf(
                         ScreenOrientation.AUTO to "自动",
                         ScreenOrientation.PORTRAIT to "竖屏",
                         ScreenOrientation.LANDSCAPE to "横屏",
                     )
-                    orientations.forEachIndexed { index, (orientation, label) ->
-                        SegmentedButton(
+                    orientations.forEach { (orientation, label) ->
+                        FilterChip(
                             selected = prefs.screenOrientation == orientation,
                             onClick = { onScreenOrientationChange(orientation) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = orientations.size),
-                        ) {
-                            Text(label)
-                        }
+                            label = { Text(label) },
+                        )
                     }
                 }
             }
@@ -263,10 +257,11 @@ fun ReadingSettingsPanel(
                 }
                 if (prefs.autoPageTurn) {
                     Text("翻页间隔", style = MaterialTheme.typography.bodySmall)
-                    SingleChoiceSegmentedButtonRow(
+                    FlowRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         val intervals = listOf(
                             3000L to "3秒",
@@ -275,14 +270,12 @@ fun ReadingSettingsPanel(
                             15000L to "15秒",
                             30000L to "30秒",
                         )
-                        intervals.forEachIndexed { index, (interval, label) ->
-                            SegmentedButton(
+                        intervals.forEach { (interval, label) ->
+                            FilterChip(
                                 selected = prefs.autoPageTurnInterval == interval,
                                 onClick = { onAutoPageTurnIntervalChange(interval) },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = intervals.size),
-                            ) {
-                                Text(label)
-                            }
+                                label = { Text(label) },
+                            )
                         }
                     }
                 }

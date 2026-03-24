@@ -18,14 +18,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -165,38 +163,24 @@ fun SettingsScreen(
             ListItem(
                 headlineContent = { Text("默认翻页模式") },
                 supportingContent = {
-                    SingleChoiceSegmentedButtonRow(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        SegmentedButton(
-                            selected = prefs.pageMode == PageMode.SCROLL,
-                            onClick = { viewModel.updatePageMode(PageMode.SCROLL) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 4),
-                        ) {
-                            Text("滚动")
-                        }
-                        SegmentedButton(
-                            selected = prefs.pageMode == PageMode.HORIZONTAL_FLIP,
-                            onClick = { viewModel.updatePageMode(PageMode.HORIZONTAL_FLIP) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 4),
-                        ) {
-                            Text("翻页")
-                        }
-                        SegmentedButton(
-                            selected = prefs.pageMode == PageMode.SIMULATION_FLIP,
-                            onClick = { viewModel.updatePageMode(PageMode.SIMULATION_FLIP) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 4),
-                        ) {
-                            Text("仿真")
-                        }
-                        SegmentedButton(
-                            selected = prefs.pageMode == PageMode.COVER_FLIP,
-                            onClick = { viewModel.updatePageMode(PageMode.COVER_FLIP) },
-                            shape = SegmentedButtonDefaults.itemShape(index = 3, count = 4),
-                        ) {
-                            Text("覆盖")
+                        val modes = listOf(
+                            PageMode.SCROLL to "滚动",
+                            PageMode.HORIZONTAL_FLIP to "翻页",
+                            PageMode.SIMULATION_FLIP to "仿真",
+                            PageMode.COVER_FLIP to "覆盖",
+                        )
+                        modes.forEach { (mode, label) ->
+                            FilterChip(
+                                selected = prefs.pageMode == mode,
+                                onClick = { viewModel.updatePageMode(mode) },
+                                label = { Text(label) },
+                            )
                         }
                     }
                 },
