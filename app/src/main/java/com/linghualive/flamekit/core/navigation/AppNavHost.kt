@@ -27,7 +27,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             BookshelfScreen(
                 onBookClick = { bookId -> navController.navigate(Screen.Reader(bookId)) },
                 onSettingsClick = { navController.navigate(Screen.Settings) },
-                onSearchClick = { navController.navigate(Screen.Search()) },
+                onSearchClick = { keyword -> navController.navigate(Screen.Search(keyword)) },
             )
         }
         composable<Screen.Reader> { backStackEntry ->

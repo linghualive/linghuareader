@@ -3,13 +3,18 @@ package com.linghualive.flamekit.feature.bookshelf.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,6 +34,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -56,7 +62,7 @@ import com.linghualive.flamekit.feature.update.ui.UpdateDialog
 fun BookshelfScreen(
     onBookClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
-    onSearchClick: () -> Unit = {},
+    onSearchClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = hiltViewModel(),
 ) {
@@ -92,15 +98,16 @@ fun BookshelfScreen(
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { viewModel.updateSearchQuery(it) },
-                            placeholder = { Text("搜索书架...") },
+                            placeholder = { Text("搜索书架或在线搜索...") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(onSearch = { /* already filtering live */ }),
-                            trailingIcon = {
-                                IconButton(onClick = { onSearchClick() }) {
-                                    Icon(Icons.Default.TravelExplore, contentDescription = "在线搜索")
-                                }
-                            },
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    if (searchQuery.isNotBlank()) {
+                                        onSearchClick(searchQuery)
+                                    }
+                                },
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
@@ -195,6 +202,30 @@ fun BookshelfScreen(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
+                books.isEmpty() && searchQuery.isNotBlank() -> {
+                    // No local results, prompt online search
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = "书架中没有找到「$searchQuery」",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedButton(onClick = { onSearchClick(searchQuery) }) {
+                            Icon(
+                                Icons.Default.TravelExplore,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                            Text("在网上搜索「$searchQuery」")
+                        }
+                    }
+                }
                 books.isEmpty() -> {
                     EmptyBookshelf()
                 }
@@ -212,6 +243,24 @@ fun BookshelfScreen(
                                 onDelete = { viewModel.deleteBook(book) },
                                 downloadProgress = activeDownloads[book.id],
                             )
+                        }
+                        // Online search entry at the bottom when searching
+                        if (searchQuery.isNotBlank()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                OutlinedButton(
+                                    onClick = { onSearchClick(searchQuery) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                ) {
+                                    Icon(
+                                        Icons.Default.TravelExplore,
+                                        contentDescription = null,
+                                        modifier = Modifier.padding(end = 8.dp),
+                                    )
+                                    Text("在网上搜索「$searchQuery」")
+                                }
+                            }
                         }
                     }
                 }
