@@ -104,16 +104,24 @@ class BookDetailViewModel @Inject constructor(
                 val total = bookDetail.chapters.size
                 val sb = StringBuilder()
 
+                val chapterPattern = Regex("^\\s*第[零一二三四五六七八九十百千万\\d]+[章节回集卷]")
+
                 for ((i, chapter) in bookDetail.chapters.withIndex()) {
                     _downloadProgress.value = "${i + 1}/$total"
+                    // Ensure title matches TxtParser's chapter pattern for correct chapter splitting
+                    val title = if (chapterPattern.containsMatchIn(chapter.title)) {
+                        chapter.title
+                    } else {
+                        "第${i + 1}章 ${chapter.title}"
+                    }
                     try {
                         val content = sourceExecutor.getContent(source, chapter.url)
-                        sb.appendLine(chapter.title)
+                        sb.appendLine(title)
                         sb.appendLine()
                         sb.appendLine(content)
                         sb.appendLine()
                     } catch (_: Exception) {
-                        sb.appendLine(chapter.title)
+                        sb.appendLine(title)
                         sb.appendLine()
                         sb.appendLine("[加载失败]")
                         sb.appendLine()
