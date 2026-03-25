@@ -38,13 +38,10 @@ import com.linghualive.flamekit.core.theme.ReaderColors
 fun ReaderToolbar(
     visible: Boolean,
     title: String,
-    currentChapter: Int,
-    totalChapters: Int,
     readerColors: ReaderColors,
     onBack: () -> Unit,
     onChapterList: () -> Unit,
     onSettings: () -> Unit,
-    onSeekChapter: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val toolbarBg = readerColors.background
@@ -97,15 +94,6 @@ fun ReaderToolbar(
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(vertical = 4.dp),
             ) {
-                // Progress bar
-                if (totalChapters > 0) {
-                    ReadingProgressBar(
-                        currentChapter = currentChapter,
-                        totalChapters = totalChapters,
-                        onSeek = onSeekChapter,
-                    )
-                }
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,

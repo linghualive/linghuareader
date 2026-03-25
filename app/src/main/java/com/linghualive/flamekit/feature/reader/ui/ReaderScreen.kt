@@ -223,13 +223,10 @@ fun ReaderScreen(
             ReaderToolbar(
                 visible = readerState.showToolbar,
                 title = readerState.bookTitle,
-                currentChapter = readerState.currentChapterIndex,
-                totalChapters = readerState.chapters.size,
                 readerColors = readerColors,
                 onBack = onBack,
                 onChapterList = viewModel::toggleChapterList,
                 onSettings = viewModel::toggleSettingsPanel,
-                onSeekChapter = viewModel::navigateToChapter,
             )
         }
 

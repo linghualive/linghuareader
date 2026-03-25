@@ -123,6 +123,11 @@ private fun ScrollReaderContent(
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = scrollPosition)
 
+    // Reset scroll position when chapter content changes
+    LaunchedEffect(content) {
+        listState.scrollToItem(scrollPosition)
+    }
+
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .distinctUntilChanged()
@@ -152,11 +157,8 @@ private fun ScrollReaderContent(
             .pointerInput(onTapCenter) {
                 detectTapGestures { offset ->
                     val height = size.height.toFloat()
-                    val width = size.width.toFloat()
                     val tapY = offset.y
-                    val tapX = offset.x
-                    if (tapY > height * 0.3f && tapY < height * 0.7f
-                        && tapX > width * 0.2f && tapX < width * 0.8f) {
+                    if (tapY > height * 0.25f && tapY < height * 0.75f) {
                         onTapCenter()
                     }
                 }
@@ -236,6 +238,11 @@ private fun PagerReaderContent(
             pageCount = { pages.size },
         )
 
+        // Reset page when chapter content changes
+        LaunchedEffect(content) {
+            pagerState.scrollToPage(scrollPosition.coerceIn(0, (pages.size - 1).coerceAtLeast(0)))
+        }
+
         LaunchedEffect(pagerState) {
             snapshotFlow { pagerState.currentPage }
                 .distinctUntilChanged()
@@ -258,11 +265,8 @@ private fun PagerReaderContent(
                     .pointerInput(onTapCenter) {
                         detectTapGestures { offset ->
                             val height = size.height.toFloat()
-                            val width = size.width.toFloat()
                             val tapY = offset.y
-                            val tapX = offset.x
-                            if (tapY > height * 0.3f && tapY < height * 0.7f
-                                && tapX > width * 0.2f && tapX < width * 0.8f) {
+                            if (tapY > height * 0.25f && tapY < height * 0.75f) {
                                 onTapCenter()
                             }
                         }
