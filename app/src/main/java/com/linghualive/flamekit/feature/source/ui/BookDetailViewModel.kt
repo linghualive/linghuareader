@@ -5,9 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linghualive.flamekit.feature.bookshelf.domain.model.Book
-import com.linghualive.flamekit.feature.bookshelf.domain.repository.BookRepository
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.ImportBookUseCase
+import com.linghualive.flamekit.feature.source.domain.BookDownloadManager
 import com.linghualive.flamekit.feature.source.domain.model.BookDetail
 import com.linghualive.flamekit.feature.source.domain.repository.BookSourceRepository
 import com.linghualive.flamekit.feature.source.engine.SourceExecutor
@@ -28,7 +27,7 @@ class BookDetailViewModel @Inject constructor(
     private val sourceRepository: BookSourceRepository,
     private val sourceExecutor: SourceExecutor,
     private val importBookUseCase: ImportBookUseCase,
-    private val bookRepository: BookRepository,
+    private val downloadManager: BookDownloadManager,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -56,6 +55,8 @@ class BookDetailViewModel @Inject constructor(
     // 0 = chapter, 1 = download
     private val _sourceType = MutableStateFlow(0)
     val sourceType: StateFlow<Int> = _sourceType
+
+    private var downloadBookId: Long? = null
 
     init {
         loadDetail()
@@ -98,56 +99,23 @@ class BookDetailViewModel @Inject constructor(
             _isDownloading.value = true
             _error.value = null
             try {
-                val source = sourceRepository.getSourceByUrl(sourceUrl)
-                    ?: throw Exception("书源不存在")
+                val bookId = downloadManager.startChapterDownload(bookDetail, sourceUrl)
+                downloadBookId = bookId
+                _addedToShelf.value = true
 
-                val total = bookDetail.chapters.size
-                val sb = StringBuilder()
-
-                val chapterPattern = Regex("^\\s*第[零一二三四五六七八九十百千万\\d]+[章节回集卷]")
-
-                for ((i, chapter) in bookDetail.chapters.withIndex()) {
-                    _downloadProgress.value = "${i + 1}/$total"
-                    // Ensure title matches TxtParser's chapter pattern for correct chapter splitting
-                    val title = if (chapterPattern.containsMatchIn(chapter.title)) {
-                        chapter.title
+                // Observe download progress while on this screen
+                downloadManager.downloads.collect { downloads ->
+                    val progress = downloads[bookId]
+                    if (progress != null) {
+                        _downloadProgress.value = "${progress.completed}/${progress.total}"
                     } else {
-                        "第${i + 1}章 ${chapter.title}"
-                    }
-                    try {
-                        val content = sourceExecutor.getContent(source, chapter.url)
-                        sb.appendLine(title)
-                        sb.appendLine()
-                        sb.appendLine(content)
-                        sb.appendLine()
-                    } catch (_: Exception) {
-                        sb.appendLine(title)
-                        sb.appendLine()
-                        sb.appendLine("[加载失败]")
-                        sb.appendLine()
+                        _isDownloading.value = false
+                        _downloadProgress.value = ""
                     }
                 }
-
-                val safeName = bookDetail.name.take(50).replace(Regex("[/\\\\:*?\"<>|]"), "_")
-                val fileName = "${safeName}.txt"
-                val booksDir = File(context.filesDir, "books").apply { mkdirs() }
-                val destFile = File(booksDir, fileName)
-                destFile.writeText(sb.toString())
-
-                val book = Book(
-                    title = bookDetail.name,
-                    author = bookDetail.author ?: "",
-                    filePath = Uri.fromFile(destFile).toString(),
-                    format = "txt",
-                    totalChapters = total,
-                )
-                bookRepository.addBook(book)
-                _addedToShelf.value = true
             } catch (e: Exception) {
                 _error.value = "下载失败：${e.message}"
-            } finally {
                 _isDownloading.value = false
-                _downloadProgress.value = ""
             }
         }
     }

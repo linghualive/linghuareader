@@ -65,6 +65,7 @@ fun BookshelfScreen(
     val availableUpdate by viewModel.availableUpdate.collectAsState()
     val sortOrder by viewModel.sortOrder.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val activeDownloads by viewModel.activeDownloads.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -209,6 +210,7 @@ fun BookshelfScreen(
                                 book = book,
                                 onClick = { onBookClick(book.id) },
                                 onDelete = { viewModel.deleteBook(book) },
+                                downloadProgress = activeDownloads[book.id],
                             )
                         }
                     }

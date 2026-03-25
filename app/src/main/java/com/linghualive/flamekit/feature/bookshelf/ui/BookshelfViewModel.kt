@@ -7,6 +7,8 @@ import com.linghualive.flamekit.feature.bookshelf.domain.model.Book
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.DeleteBookUseCase
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.GetBooksUseCase
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.ImportBookUseCase
+import com.linghualive.flamekit.feature.source.domain.BookDownloadManager
+import com.linghualive.flamekit.feature.source.domain.DownloadProgress
 import com.linghualive.flamekit.feature.update.data.AppUpdateChecker
 import com.linghualive.flamekit.feature.update.domain.model.AppRelease
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +33,7 @@ class BookshelfViewModel @Inject constructor(
     private val importBookUseCase: ImportBookUseCase,
     private val deleteBookUseCase: DeleteBookUseCase,
     private val appUpdateChecker: AppUpdateChecker,
+    private val downloadManager: BookDownloadManager,
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
@@ -58,6 +61,8 @@ class BookshelfViewModel @Inject constructor(
             SortOrder.ADDED -> filtered.sortedByDescending { it.addedAt }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val activeDownloads: StateFlow<Map<Long, DownloadProgress>> = downloadManager.downloads
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading

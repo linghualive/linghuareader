@@ -9,6 +9,7 @@ import com.linghualive.flamekit.feature.reader.domain.model.ChapterInfo
 import com.linghualive.flamekit.feature.reader.domain.repository.ReaderRepository
 import com.linghualive.flamekit.feature.reader.format.BookParserFactory
 import com.linghualive.flamekit.feature.reader.format.Chapter
+import com.linghualive.flamekit.feature.source.domain.BookDownloadManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,6 +19,7 @@ class ReaderRepositoryImpl @Inject constructor(
     private val bookDao: BookDao,
     private val readingProgressDao: ReadingProgressDao,
     private val parserFactory: BookParserFactory,
+    private val downloadManager: BookDownloadManager,
     @ApplicationContext private val context: Context,
 ) : ReaderRepository {
 
@@ -62,7 +64,10 @@ class ReaderRepositoryImpl @Inject constructor(
     }
 
     private suspend fun getOrParseChapters(bookId: Long): List<Chapter> {
-        chapterCache[bookId]?.let { return it }
+        // Skip cache for books still downloading so we get latest chapters
+        if (!downloadManager.isDownloading(bookId)) {
+            chapterCache[bookId]?.let { return it }
+        }
 
         val book = bookDao.getBookById(bookId) ?: return emptyList()
         val uri = Uri.parse(book.filePath)
