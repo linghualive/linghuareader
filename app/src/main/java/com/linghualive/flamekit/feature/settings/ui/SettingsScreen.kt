@@ -266,7 +266,7 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent = { Text("应用名称") },
-                supportingContent = { Text("灵华阅读") },
+                supportingContent = { Text("玲华阅读") },
             )
 
             ListItem(

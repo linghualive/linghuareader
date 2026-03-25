@@ -80,7 +80,7 @@ private fun downloadAndInstall(context: Context, release: AppRelease) {
         val fileName = "linghua-reader-${release.version}.apk"
 
         val request = DownloadManager.Request(Uri.parse(release.downloadUrl))
-            .setTitle("灵华阅读 v${release.version}")
+            .setTitle("玲华阅读 v${release.version}")
             .setDescription("正在下载更新...")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
