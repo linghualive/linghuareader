@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,8 @@ fun BookDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val addedToShelf by viewModel.addedToShelf.collectAsState()
+    val isDownloading by viewModel.isDownloading.collectAsState()
+    val sourceType by viewModel.sourceType.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -63,14 +66,29 @@ fun BookDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = { viewModel.addToBookshelf() },
-                        enabled = detail != null && !addedToShelf,
-                    ) {
-                        Icon(
-                            if (addedToShelf) Icons.Default.Check else Icons.Default.BookmarkAdd,
-                            contentDescription = if (addedToShelf) "已加入书架" else "加入书架",
+                    if (isDownloading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp).padding(end = 8.dp),
+                            strokeWidth = 2.dp,
                         )
+                    } else {
+                        IconButton(
+                            onClick = { viewModel.addToBookshelf() },
+                            enabled = detail != null && !addedToShelf,
+                        ) {
+                            Icon(
+                                when {
+                                    addedToShelf -> Icons.Default.Check
+                                    sourceType == 1 -> Icons.Default.Download
+                                    else -> Icons.Default.BookmarkAdd
+                                },
+                                contentDescription = when {
+                                    addedToShelf -> "已加入书架"
+                                    sourceType == 1 -> "下载到书架"
+                                    else -> "加入书架"
+                                },
+                            )
+                        }
                     }
                 },
             )
@@ -87,7 +105,7 @@ fun BookDetailScreen(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
-                error != null -> {
+                error != null && detail == null -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -139,12 +157,39 @@ fun BookDetailScreen(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Error message (e.g. download failed)
+                                    if (error != null) {
+                                        Text(
+                                            text = error ?: "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Button(
                                             onClick = { viewModel.addToBookshelf() },
-                                            enabled = !addedToShelf,
+                                            enabled = !addedToShelf && !isDownloading,
                                         ) {
-                                            Text(if (addedToShelf) "已加入书架" else "加入书架")
+                                            if (isDownloading) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(16.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text("下载中...")
+                                            } else {
+                                                Text(
+                                                    when {
+                                                        addedToShelf -> "已加入书架"
+                                                        sourceType == 1 -> "下载到书架"
+                                                        else -> "加入书架"
+                                                    }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -171,28 +216,52 @@ fun BookDetailScreen(
                             }
                         }
 
-                        // Chapter list header
-                        item {
-                            HorizontalDivider()
-                            Text(
-                                text = "目录 (${bookDetail.chapters.size} 章)",
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(16.dp),
-                            )
+                        // Chapter list (only for chapter-type sources)
+                        if (sourceType == 0 && bookDetail.chapters.isNotEmpty()) {
+                            item {
+                                HorizontalDivider()
+                                Text(
+                                    text = "目录 (${bookDetail.chapters.size} 章)",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.padding(16.dp),
+                                )
+                            }
+
+                            itemsIndexed(bookDetail.chapters) { _, chapter ->
+                                Text(
+                                    text = chapter.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                )
+                                HorizontalDivider()
+                            }
                         }
 
-                        // Chapters
-                        itemsIndexed(bookDetail.chapters) { _, chapter ->
-                            Text(
-                                text = chapter.title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                            )
-                            HorizontalDivider()
+                        // Download source info
+                        if (sourceType == 1) {
+                            item {
+                                HorizontalDivider()
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "下载型书源",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = if (bookDetail.downloadUrl != null) {
+                                            "点击「下载到书架」将文件下载到本地阅读"
+                                        } else {
+                                            "未找到下载链接，该书源可能需要登录后才能下载"
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
                         }
                     }
                 }

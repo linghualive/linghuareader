@@ -62,22 +62,30 @@ class SourceManagerViewModel @Inject constructor(
     val isRefreshingSubscription: StateFlow<Boolean> = _isRefreshingSubscription
 
     init {
-        loadDefaultSourcesIfEmpty()
+        loadDefaultSourcesIfNeeded()
     }
 
-    private fun loadDefaultSourcesIfEmpty() {
+    private fun loadDefaultSourcesIfNeeded() {
         viewModelScope.launch {
-            if (repository.getSourceCount() == 0) {
-                try {
+            try {
+                val prefs = context.getSharedPreferences("source_prefs", Context.MODE_PRIVATE)
+                val storedVersion = prefs.getInt("default_sources_version", 0)
+                if (storedVersion < DEFAULT_SOURCES_VERSION) {
                     val jsonStr = context.assets.open("default_sources.json")
                         .bufferedReader().use { it.readText() }
                     val sources = json.decodeFromString<List<BookSource>>(jsonStr)
                     repository.addSources(sources)
-                } catch (_: Exception) {
-                    // No default sources file or parse error
+                    prefs.edit().putInt("default_sources_version", DEFAULT_SOURCES_VERSION).apply()
                 }
+            } catch (_: Exception) {
+                // No default sources file or parse error
             }
         }
+    }
+
+    companion object {
+        // Bump this number whenever default_sources.json is updated
+        const val DEFAULT_SOURCES_VERSION = 2
     }
 
     fun importFromJson(jsonText: String) {

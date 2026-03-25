@@ -85,7 +85,7 @@ class SearchViewModel @Inject constructor(
                                 val results = sourceExecutor.search(source, keyword)
                                 mutex.withLock {
                                     allResults.addAll(results)
-                                    _results.value = allResults.toList()
+                                    _results.value = rankAndDeduplicate(allResults, keyword)
                                 }
                             }
                         } catch (_: Exception) {
@@ -98,7 +98,57 @@ class SearchViewModel @Inject constructor(
                 jobs.awaitAll()
             }
 
+            // Final sort
+            _results.value = rankAndDeduplicate(allResults, keyword)
             _isSearching.value = false
         }
+    }
+
+    private fun rankAndDeduplicate(
+        results: List<SearchResult>,
+        keyword: String,
+    ): List<SearchResult> {
+        val normalizedKeyword = normalize(keyword)
+
+        // Deduplicate: keep the first result per (title, author) pair
+        val seen = mutableSetOf<String>()
+        val unique = results.filter { result ->
+            val key = "${normalize(result.bookName)}|${normalize(result.author ?: "")}"
+            seen.add(key)
+        }
+
+        // Score and sort by relevance
+        return unique.sortedByDescending { result ->
+            relevanceScore(normalize(result.bookName), normalizedKeyword)
+        }
+    }
+
+    private fun relevanceScore(title: String, keyword: String): Int {
+        return when {
+            title == keyword -> 100                          // exact match
+            title.startsWith(keyword) -> 80                  // starts with
+            title.contains(keyword) -> 60                    // contains
+            keyword.length >= 2 && fuzzyMatch(title, keyword) -> 40  // fuzzy match
+            else -> 0
+        }
+    }
+
+    private fun fuzzyMatch(title: String, keyword: String): Boolean {
+        // Check if all characters of keyword appear in title in order
+        var ki = 0
+        for (ch in title) {
+            if (ki < keyword.length && ch == keyword[ki]) ki++
+        }
+        if (ki == keyword.length) return true
+
+        // Check if keyword shares ≥50% characters with title
+        val commonChars = keyword.count { it in title }
+        return commonChars.toFloat() / keyword.length >= 0.5f
+    }
+
+    private fun normalize(text: String): String {
+        return text.trim()
+            .lowercase()
+            .replace(Regex("[\\s　]+"), "")  // remove all whitespace including CJK space
     }
 }

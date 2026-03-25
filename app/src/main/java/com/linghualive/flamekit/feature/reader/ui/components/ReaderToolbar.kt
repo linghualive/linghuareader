@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.linghualive.flamekit.core.theme.ReaderColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,14 +40,15 @@ fun ReaderToolbar(
     title: String,
     currentChapter: Int,
     totalChapters: Int,
+    readerColors: ReaderColors,
     onBack: () -> Unit,
     onChapterList: () -> Unit,
     onSettings: () -> Unit,
     onSeekChapter: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val toolbarBg = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-    val contentColor = MaterialTheme.colorScheme.onSurface
+    val toolbarBg = readerColors.background
+    val contentColor = readerColors.textColor
 
     Box(modifier = modifier.fillMaxSize()) {
         // Top bar

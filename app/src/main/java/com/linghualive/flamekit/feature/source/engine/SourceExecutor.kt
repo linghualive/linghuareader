@@ -60,24 +60,53 @@ class SourceExecutor @Inject constructor(
                 ruleParser.extractFromHtml(html, it)?.let { c -> resolveUrl(source.sourceUrl, c) }
             }
             val intro = source.detailIntro?.let { ruleParser.extractFromHtml(html, it) }
-            val tocUrl = source.detailTocUrl?.let {
-                ruleParser.extractFromHtml(html, it)?.let { t -> resolveUrl(source.sourceUrl, t) }
-            }
 
-            val chapters = if (tocUrl != null) {
-                getChapters(source, tocUrl)
+            // For download-type sources (sourceType=1), extract download URL instead of chapters
+            if (source.sourceType == 1) {
+                val downloadUrl = source.contentRule?.let {
+                    ruleParser.extractFromHtml(html, it)?.let { u -> resolveUrl(bookUrl, u) }
+                }
+                BookDetail(
+                    name = name,
+                    author = author,
+                    coverUrl = cover,
+                    intro = intro,
+                    tocUrl = null,
+                    chapters = emptyList(),
+                    downloadUrl = downloadUrl,
+                )
             } else {
-                parseChaptersFromHtml(source, html)
+                val tocUrl = source.detailTocUrl?.let {
+                    ruleParser.extractFromHtml(html, it)?.let { t -> resolveUrl(source.sourceUrl, t) }
+                }
+                val chapters = if (tocUrl != null) {
+                    getChapters(source, tocUrl)
+                } else {
+                    parseChaptersFromHtml(source, html)
+                }
+                BookDetail(
+                    name = name,
+                    author = author,
+                    coverUrl = cover,
+                    intro = intro,
+                    tocUrl = tocUrl,
+                    chapters = chapters,
+                )
             }
+        }
 
-            BookDetail(
-                name = name,
-                author = author,
-                coverUrl = cover,
-                intro = intro,
-                tocUrl = tocUrl,
-                chapters = chapters,
+    suspend fun downloadFile(url: String, headers: Map<String, String>? = null): ByteArray =
+        withContext(Dispatchers.IO) {
+            val requestBuilder = Request.Builder().url(url)
+            headers?.forEach { (key, value) ->
+                requestBuilder.addHeader(key, value)
+            }
+            requestBuilder.addHeader(
+                "User-Agent",
+                "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
             )
+            val response = okHttpClient.newCall(requestBuilder.build()).execute()
+            response.body?.bytes() ?: throw Exception("下载失败：空响应")
         }
 
     suspend fun getChapters(source: BookSource, tocUrl: String): List<OnlineChapter> =

@@ -28,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -141,6 +142,7 @@ private fun ScrollReaderContent(
         lineHeight = (readerPrefs.fontSize * readerPrefs.lineSpacingMultiplier).sp,
         color = readerColors.textColor,
         textIndent = TextIndent(firstLine = (readerPrefs.paragraphIndent * readerPrefs.fontSize).sp),
+        textAlign = TextAlign.Justify,
     )
 
     LazyColumn(
@@ -245,6 +247,7 @@ private fun PagerReaderContent(
             lineHeight = lineHeightSp.sp,
             color = readerColors.textColor,
             textIndent = TextIndent(firstLine = (readerPrefs.paragraphIndent * readerPrefs.fontSize).sp),
+            textAlign = TextAlign.Justify,
         )
 
         Box(modifier = Modifier.fillMaxSize()) {

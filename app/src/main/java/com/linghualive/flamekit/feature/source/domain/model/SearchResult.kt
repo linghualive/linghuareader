@@ -17,6 +17,7 @@ data class BookDetail(
     val intro: String?,
     val tocUrl: String?,
     val chapters: List<OnlineChapter>,
+    val downloadUrl: String? = null,
 )
 
 data class OnlineChapter(
