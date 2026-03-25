@@ -1,5 +1,6 @@
 package com.linghualive.flamekit.feature.bookshelf.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -75,6 +76,12 @@ fun BookshelfScreen(
     var showSortMenu by remember { mutableStateOf(false) }
     var showSearchBar by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+
+    // Back press closes search bar first
+    BackHandler(enabled = showSearchBar) {
+        showSearchBar = false
+        viewModel.updateSearchQuery("")
+    }
 
     availableUpdate?.let { release ->
         UpdateDialog(
