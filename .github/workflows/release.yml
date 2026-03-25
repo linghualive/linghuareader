@@ -41,9 +41,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: 灵华阅读 v${{ steps.version.outputs.VERSION }}
+          name: 玲华阅读 v${{ steps.version.outputs.VERSION }}
           body: |
-            ## 灵华阅读 v${{ steps.version.outputs.VERSION }}
+            ## 玲华阅读 v${{ steps.version.outputs.VERSION }}
 
             ### 下载安装
             下载下方 APK 文件安装即可。
