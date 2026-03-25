@@ -10,8 +10,8 @@ data class ReadingPreferences(
     val readerTheme: ReaderThemeType = ReaderThemeType.LIGHT,
     val fontFamily: String = "default",
     val paragraphIndent: Int = 2,
-    val marginHorizontal: Int = 16,
-    val marginVertical: Int = 16,
+    val marginHorizontal: Int = 28,
+    val marginVertical: Int = 24,
     val customTheme: CustomReaderTheme = CustomReaderTheme(),
     val keepScreenOn: Boolean = true,
     val volumeKeyPageTurn: Boolean = false,
@@ -21,7 +21,7 @@ data class ReadingPreferences(
     val screenOrientation: ScreenOrientation = ScreenOrientation.AUTO,
     val contentCleanEnabled: Boolean = true,
     val customCleanRules: List<String> = emptyList(),
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val themeMode: ThemeMode = ThemeMode.LIGHT,
     val dynamicColor: Boolean = true,
 )
 

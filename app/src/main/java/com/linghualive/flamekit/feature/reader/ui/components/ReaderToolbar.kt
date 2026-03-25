@@ -18,19 +18,17 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -43,11 +41,13 @@ fun ReaderToolbar(
     totalChapters: Int,
     onBack: () -> Unit,
     onChapterList: () -> Unit,
-    onBookmarkList: () -> Unit,
     onSettings: () -> Unit,
     onSeekChapter: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val toolbarBg = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+    val contentColor = MaterialTheme.colorScheme.onSurface
+
     Box(modifier = modifier.fillMaxSize()) {
         // Top bar
         AnimatedVisibility(
@@ -73,9 +73,9 @@ fun ReaderToolbar(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black.copy(alpha = 0.7f),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
+                    containerColor = toolbarBg,
+                    titleContentColor = contentColor,
+                    navigationIconContentColor = contentColor,
                 ),
                 modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
             )
@@ -91,7 +91,7 @@ fun ReaderToolbar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.7f))
+                    .background(toolbarBg)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(vertical = 4.dp),
             ) {
@@ -114,9 +114,9 @@ fun ReaderToolbar(
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
                                 contentDescription = "目录",
-                                tint = Color.White,
+                                tint = contentColor,
                             )
-                            Text("目录", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                            Text("目录", color = contentColor, style = MaterialTheme.typography.labelSmall)
                         }
                     }
                     IconButton(onClick = onSettings) {
@@ -124,29 +124,9 @@ fun ReaderToolbar(
                             Icon(
                                 Icons.Filled.Palette,
                                 contentDescription = "主题",
-                                tint = Color.White,
+                                tint = contentColor,
                             )
-                            Text("主题", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                    IconButton(onClick = onBookmarkList) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Filled.Bookmark,
-                                contentDescription = "书签",
-                                tint = Color.White,
-                            )
-                            Text("书签", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                    IconButton(onClick = onSettings) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Filled.FormatSize,
-                                contentDescription = "字体",
-                                tint = Color.White,
-                            )
-                            Text("字体", color = Color.White, style = androidx.compose.material3.MaterialTheme.typography.labelSmall)
+                            Text("主题", color = contentColor, style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }

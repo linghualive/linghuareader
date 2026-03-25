@@ -2,28 +2,23 @@ package com.linghualive.flamekit.feature.bookshelf.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,14 +41,14 @@ import com.linghualive.flamekit.feature.bookshelf.domain.model.Book
 import kotlin.math.absoluteValue
 
 private val coverGradients = listOf(
-    listOf(Color(0xFF667eea), Color(0xFF764ba2)),
-    listOf(Color(0xFFf093fb), Color(0xFFf5576c)),
-    listOf(Color(0xFF4facfe), Color(0xFF00f2fe)),
-    listOf(Color(0xFF43e97b), Color(0xFF38f9d7)),
-    listOf(Color(0xFFfa709a), Color(0xFFfee140)),
-    listOf(Color(0xFFa18cd1), Color(0xFFfbc2eb)),
-    listOf(Color(0xFF30cfd0), Color(0xFF330867)),
-    listOf(Color(0xFFffecd2), Color(0xFFfcb69f)),
+    listOf(Color(0xFF6366F1), Color(0xFF8B5CF6)), // indigo → violet
+    listOf(Color(0xFF3B82F6), Color(0xFF06B6D4)), // blue → cyan
+    listOf(Color(0xFF10B981), Color(0xFF34D399)), // emerald
+    listOf(Color(0xFFF59E0B), Color(0xFFF97316)), // amber → orange
+    listOf(Color(0xFFEC4899), Color(0xFFF43F5E)), // pink → rose
+    listOf(Color(0xFF8B5CF6), Color(0xFFD946EF)), // violet → fuchsia
+    listOf(Color(0xFF0EA5E9), Color(0xFF6366F1)), // sky → indigo
+    listOf(Color(0xFF14B8A6), Color(0xFF3B82F6)), // teal → blue
 )
 
 private fun formatRelativeTime(timestamp: Long?): String? {
@@ -81,23 +76,27 @@ fun BookCard(
     val gradientIndex = remember(book.id) { book.id.hashCode().absoluteValue % coverGradients.size }
     val gradient = coverGradients[gradientIndex]
 
-    Card(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = { showMenu = true },
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp),
     ) {
-        Column {
-            // Cover area — 2:3 aspect ratio
+        // Cover
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(3f / 4f),
+            shape = RoundedCornerShape(12.dp),
+            shadowElevation = 2.dp,
+            tonalElevation = 0.dp,
+        ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(2f / 3f)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 if (book.coverPath != null) {
@@ -108,112 +107,102 @@ fun BookCard(
                         contentScale = ContentScale.Crop,
                     )
                 } else {
-                    // Gradient cover with book title
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Brush.linearGradient(gradient)),
+                            .background(
+                                Brush.linearGradient(
+                                    colors = gradient,
+                                ),
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = book.title.take(4),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.9f),
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            lineHeight = 24.sp,
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        ) {
+                            Text(
+                                text = book.title.take(6),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                lineHeight = 22.sp,
+                            )
+                            if (book.author.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = book.author,
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.75f),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                     }
                 }
 
-                // Format badge — bottom start, capsule style
+                // Format badge
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomStart)
+                        .align(Alignment.BottomEnd)
                         .padding(6.dp)
                         .background(
-                            Color.Black.copy(alpha = 0.45f),
-                            RoundedCornerShape(50),
+                            Color.Black.copy(alpha = 0.35f),
+                            RoundedCornerShape(4.dp),
                         )
-                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                        .padding(horizontal = 5.dp, vertical = 2.dp),
                 ) {
                     Text(
                         text = book.format.uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        letterSpacing = 0.5.sp,
                     )
                 }
             }
+        }
 
-            // Info area
-            Column(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp,
-                )
+        // Title & meta
+        Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = book.title,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
 
-                if (book.author.isNotBlank()) {
-                    Text(
-                        text = book.author,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+        val relativeTime = formatRelativeTime(book.lastReadAt)
+        val subtitle = relativeTime ?: "${book.totalChapters} 章"
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val relativeTime = formatRelativeTime(book.lastReadAt)
-                    if (relativeTime != null) {
-                        Text(
-                            text = relativeTime,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium,
-                        )
-                    } else {
-                        Text(
-                            text = "${book.totalChapters} 章",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text("删除") },
-                    onClick = {
-                        showMenu = false
-                        onDelete()
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Default.Delete, contentDescription = null)
-                    },
-                )
-            }
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("删除") },
+                onClick = {
+                    showMenu = false
+                    onDelete()
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                },
+            )
         }
     }
 }

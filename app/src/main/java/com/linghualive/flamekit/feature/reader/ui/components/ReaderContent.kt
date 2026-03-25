@@ -39,6 +39,7 @@ import com.linghualive.flamekit.feature.reader.engine.PageFlipView
 import com.linghualive.flamekit.feature.reader.engine.PaginateConfig
 import com.linghualive.flamekit.feature.reader.engine.TextPaginator
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 
 @Composable
 fun ReaderContent(
@@ -49,6 +50,7 @@ fun ReaderContent(
     scrollPosition: Int,
     onScrollPositionChanged: (Int) -> Unit,
     onTapCenter: () -> Unit,
+    onScrollStarted: () -> Unit = {},
     modifier: Modifier = Modifier,
     chapterIndex: Int = 0,
     chapterTitle: String = "",
@@ -62,6 +64,7 @@ fun ReaderContent(
             scrollPosition = scrollPosition,
             onScrollPositionChanged = onScrollPositionChanged,
             onTapCenter = onTapCenter,
+            onScrollStarted = onScrollStarted,
             modifier = modifier,
         )
         PageMode.HORIZONTAL_FLIP -> PagerReaderContent(
@@ -110,6 +113,7 @@ private fun ScrollReaderContent(
     scrollPosition: Int,
     onScrollPositionChanged: (Int) -> Unit,
     onTapCenter: () -> Unit,
+    onScrollStarted: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val paragraphs = remember(content) {
@@ -122,6 +126,14 @@ private fun ScrollReaderContent(
         snapshotFlow { listState.firstVisibleItemIndex }
             .distinctUntilChanged()
             .collect { onScrollPositionChanged(it) }
+    }
+
+    // Auto-hide toolbar when scrolling starts
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
+            .filter { it }
+            .collect { onScrollStarted() }
     }
 
     val textStyle = TextStyle(

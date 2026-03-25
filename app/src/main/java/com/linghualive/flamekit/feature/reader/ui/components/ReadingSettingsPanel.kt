@@ -197,27 +197,6 @@ fun ReadingSettingsPanel(
                 }
             }
 
-            // Font family
-            if (fonts.isNotEmpty()) {
-                Column {
-                    Text("字体", style = MaterialTheme.typography.titleSmall)
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        fonts.take(4).forEach { fontInfo ->
-                            FilterChip(
-                                selected = prefs.fontFamily == fontInfo.id,
-                                onClick = { onFontChange(fontInfo.id) },
-                                label = { Text(fontInfo.displayName) },
-                            )
-                        }
-                    }
-                }
-            }
-
             // Screen orientation
             Column {
                 Text("屏幕方向", style = MaterialTheme.typography.titleSmall)

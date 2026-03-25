@@ -18,9 +18,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -38,7 +36,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.linghualive.flamekit.core.datastore.ScreenOrientation
 import com.linghualive.flamekit.core.theme.readerColorsFor
 import com.linghualive.flamekit.feature.reader.ui.components.AddNoteDialog
-import com.linghualive.flamekit.feature.reader.ui.components.BookmarkListSheet
 import com.linghualive.flamekit.feature.reader.ui.components.ChapterListSheet
 import com.linghualive.flamekit.feature.reader.ui.components.NoteListSheet
 import com.linghualive.flamekit.feature.reader.ui.components.PdfReaderContent
@@ -57,7 +54,6 @@ fun ReaderScreen(
 ) {
     val readerState by viewModel.readerState.collectAsState()
     val prefs by viewModel.readingPrefs.collectAsState()
-    val bookmarks by viewModel.bookmarks.collectAsState()
     val ttsState by viewModel.ttsState.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
     val notes by viewModel.notes.collectAsState()
@@ -155,9 +151,6 @@ fun ReaderScreen(
         }
     }
 
-    // Bookmark list state
-    var showBookmarkList by remember { mutableStateOf(false) }
-
     // Focus requester for volume key handling
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -211,6 +204,7 @@ fun ReaderScreen(
                     scrollPosition = readerState.scrollPosition,
                     onScrollPositionChanged = viewModel::updateScrollPosition,
                     onTapCenter = viewModel::toggleToolbar,
+                    onScrollStarted = viewModel::hideToolbar,
                     chapterIndex = readerState.currentChapterIndex,
                     chapterTitle = readerState.chapters.getOrNull(readerState.currentChapterIndex)?.title ?: "",
                 )
@@ -233,7 +227,6 @@ fun ReaderScreen(
                 totalChapters = readerState.chapters.size,
                 onBack = onBack,
                 onChapterList = viewModel::toggleChapterList,
-                onBookmarkList = { showBookmarkList = true },
                 onSettings = viewModel::toggleSettingsPanel,
                 onSeekChapter = viewModel::navigateToChapter,
             )
@@ -286,19 +279,6 @@ fun ReaderScreen(
                     onDismiss = viewModel::dismissTtsPanel,
                 )
             }
-        }
-
-        // Bookmark list sheet
-        if (showBookmarkList) {
-            BookmarkListSheet(
-                bookmarks = bookmarks,
-                onBookmarkClick = { bookmark ->
-                    showBookmarkList = false
-                    viewModel.navigateToChapter(bookmark.chapterIndex)
-                },
-                onDeleteBookmark = viewModel::deleteBookmark,
-                onDismiss = { showBookmarkList = false },
-            )
         }
 
         // Search sheet

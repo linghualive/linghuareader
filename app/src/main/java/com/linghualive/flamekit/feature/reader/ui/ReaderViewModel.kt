@@ -148,6 +148,10 @@ class ReaderViewModel @Inject constructor(
         _readerState.update { it.copy(showToolbar = !it.showToolbar) }
     }
 
+    fun hideToolbar() {
+        _readerState.update { it.copy(showToolbar = false) }
+    }
+
     fun toggleChapterList() {
         _readerState.update { it.copy(showChapterList = !it.showChapterList) }
     }
