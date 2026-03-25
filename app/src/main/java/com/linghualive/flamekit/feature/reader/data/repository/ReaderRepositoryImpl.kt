@@ -9,8 +9,6 @@ import com.linghualive.flamekit.feature.reader.domain.model.ChapterInfo
 import com.linghualive.flamekit.feature.reader.domain.repository.ReaderRepository
 import com.linghualive.flamekit.feature.reader.format.BookParserFactory
 import com.linghualive.flamekit.feature.reader.format.Chapter
-import com.linghualive.flamekit.feature.source.domain.repository.BookSourceRepository
-import com.linghualive.flamekit.feature.source.engine.SourceExecutor
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,8 +18,6 @@ class ReaderRepositoryImpl @Inject constructor(
     private val bookDao: BookDao,
     private val readingProgressDao: ReadingProgressDao,
     private val parserFactory: BookParserFactory,
-    private val sourceExecutor: SourceExecutor,
-    private val bookSourceRepository: BookSourceRepository,
     @ApplicationContext private val context: Context,
 ) : ReaderRepository {
 
@@ -33,25 +29,6 @@ class ReaderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun loadChapterContent(bookId: Long, chapterIndex: Int): String {
-        val book = bookDao.getBookById(bookId) ?: return ""
-
-        if (book.format == "ONLINE") {
-            val chapters = getOrParseChapters(bookId)
-            val chapter = chapters.getOrNull(chapterIndex) ?: return ""
-            // For online books, chapter.content stores the URL; fetch real content
-            val chapterUrl = chapter.content
-            if (chapterUrl.startsWith("http")) {
-                val source = book.sourceUrl?.let { bookSourceRepository.getSourceByUrl(it) }
-                    ?: return "书源不存在"
-                return try {
-                    sourceExecutor.getContent(source, chapterUrl)
-                } catch (e: Exception) {
-                    "加载失败：${e.message}"
-                }
-            }
-            return chapter.content
-        }
-
         val chapters = getOrParseChapters(bookId)
         return chapters.getOrNull(chapterIndex)?.content ?: ""
     }
@@ -88,28 +65,6 @@ class ReaderRepositoryImpl @Inject constructor(
         chapterCache[bookId]?.let { return it }
 
         val book = bookDao.getBookById(bookId) ?: return emptyList()
-
-        if (book.format == "ONLINE") {
-            val source = book.sourceUrl?.let { bookSourceRepository.getSourceByUrl(it) }
-                ?: return emptyList()
-            val bookUrl = book.filePath  // filePath stores the book URL for online books
-            return try {
-                val detail = sourceExecutor.getDetail(source, bookUrl)
-                val chapters = detail.chapters.mapIndexed { index, ch ->
-                    Chapter(
-                        index = index,
-                        title = ch.title,
-                        content = ch.url,  // Store URL in content for lazy loading
-                        startOffset = 0,
-                    )
-                }
-                chapterCache[bookId] = chapters
-                chapters
-            } catch (e: Exception) {
-                emptyList()
-            }
-        }
-
         val uri = Uri.parse(book.filePath)
         val parser = parserFactory.getParser(book.filePath)
         val result = parser.parse(context, uri)

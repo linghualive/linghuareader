@@ -5,8 +5,6 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linghualive.flamekit.feature.bookshelf.domain.model.Book
-import com.linghualive.flamekit.feature.bookshelf.domain.repository.BookRepository
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.ImportBookUseCase
 import com.linghualive.flamekit.feature.source.domain.model.BookDetail
 import com.linghualive.flamekit.feature.source.domain.repository.BookSourceRepository
@@ -26,7 +24,6 @@ import javax.inject.Inject
 class BookDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val sourceRepository: BookSourceRepository,
-    private val bookRepository: BookRepository,
     private val sourceExecutor: SourceExecutor,
     private val importBookUseCase: ImportBookUseCase,
     @ApplicationContext private val context: Context,
@@ -49,6 +46,9 @@ class BookDetailViewModel @Inject constructor(
 
     private val _isDownloading = MutableStateFlow(false)
     val isDownloading: StateFlow<Boolean> = _isDownloading
+
+    private val _downloadProgress = MutableStateFlow("")
+    val downloadProgress: StateFlow<String> = _downloadProgress
 
     // 0 = chapter, 1 = download
     private val _sourceType = MutableStateFlow(0)
@@ -77,27 +77,65 @@ class BookDetailViewModel @Inject constructor(
     }
 
     fun addToBookshelf() {
-        val bookDetail = _detail.value ?: return
-
         if (_sourceType.value == 1) {
-            downloadAndImport()
+            downloadFileAndImport()
         } else {
-            viewModelScope.launch {
-                val book = Book(
-                    title = bookDetail.name.ifBlank { "未知书名" },
-                    author = bookDetail.author ?: "",
-                    filePath = bookUrl,
-                    format = "ONLINE",
-                    coverPath = bookDetail.coverUrl,
-                    sourceUrl = sourceUrl,
-                )
-                bookRepository.addBook(book)
+            downloadChaptersAndImport()
+        }
+    }
+
+    private fun downloadChaptersAndImport() {
+        val bookDetail = _detail.value ?: return
+        if (bookDetail.chapters.isEmpty()) {
+            _error.value = "没有可下载的章节"
+            return
+        }
+
+        viewModelScope.launch {
+            _isDownloading.value = true
+            _error.value = null
+            try {
+                val source = sourceRepository.getSourceByUrl(sourceUrl)
+                    ?: throw Exception("书源不存在")
+
+                val total = bookDetail.chapters.size
+                val sb = StringBuilder()
+
+                for ((i, chapter) in bookDetail.chapters.withIndex()) {
+                    _downloadProgress.value = "${i + 1}/$total"
+                    try {
+                        val content = sourceExecutor.getContent(source, chapter.url)
+                        sb.appendLine(chapter.title)
+                        sb.appendLine()
+                        sb.appendLine(content)
+                        sb.appendLine()
+                    } catch (_: Exception) {
+                        sb.appendLine(chapter.title)
+                        sb.appendLine()
+                        sb.appendLine("[加载失败]")
+                        sb.appendLine()
+                    }
+                }
+
+                val safeName = bookDetail.name.take(50).replace(Regex("[/\\\\:*?\"<>|]"), "_")
+                val fileName = "${safeName}.txt"
+                val booksDir = File(context.filesDir, "books").apply { mkdirs() }
+                val destFile = File(booksDir, fileName)
+                destFile.writeText(sb.toString())
+
+                val uri = Uri.fromFile(destFile)
+                importBookUseCase(uri)
                 _addedToShelf.value = true
+            } catch (e: Exception) {
+                _error.value = "下载失败：${e.message}"
+            } finally {
+                _isDownloading.value = false
+                _downloadProgress.value = ""
             }
         }
     }
 
-    private fun downloadAndImport() {
+    private fun downloadFileAndImport() {
         val bookDetail = _detail.value ?: return
         val downloadUrl = bookDetail.downloadUrl
         if (downloadUrl.isNullOrBlank()) {
@@ -112,15 +150,16 @@ class BookDetailViewModel @Inject constructor(
                 val source = sourceRepository.getSourceByUrl(sourceUrl)
                 val headers = source?.header?.let { parseHeaders(it) }
 
+                _downloadProgress.value = "下载中..."
                 val fileBytes = sourceExecutor.downloadFile(downloadUrl, headers)
 
-                // Determine file extension from URL or default to epub
                 val ext = downloadUrl.substringAfterLast(".", "epub")
                     .substringBefore("?")
                     .lowercase()
                     .let { if (it in listOf("epub", "pdf", "txt", "mobi")) it else "epub" }
 
-                val fileName = "${bookDetail.name.take(50).replace(Regex("[/\\\\:*?\"<>|]"), "_")}.$ext"
+                val safeName = bookDetail.name.take(50).replace(Regex("[/\\\\:*?\"<>|]"), "_")
+                val fileName = "$safeName.$ext"
                 val booksDir = File(context.filesDir, "books").apply { mkdirs() }
                 val destFile = File(booksDir, fileName)
                 destFile.writeBytes(fileBytes)
@@ -132,6 +171,7 @@ class BookDetailViewModel @Inject constructor(
                 _error.value = "下载失败：${e.message}"
             } finally {
                 _isDownloading.value = false
+                _downloadProgress.value = ""
             }
         }
     }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BookmarkAdd
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Button
@@ -53,6 +52,7 @@ fun BookDetailScreen(
     val error by viewModel.error.collectAsState()
     val addedToShelf by viewModel.addedToShelf.collectAsState()
     val isDownloading by viewModel.isDownloading.collectAsState()
+    val downloadProgress by viewModel.downloadProgress.collectAsState()
     val sourceType by viewModel.sourceType.collectAsState()
 
     Scaffold(
@@ -77,16 +77,10 @@ fun BookDetailScreen(
                             enabled = detail != null && !addedToShelf,
                         ) {
                             Icon(
-                                when {
-                                    addedToShelf -> Icons.Default.Check
-                                    sourceType == 1 -> Icons.Default.Download
-                                    else -> Icons.Default.BookmarkAdd
-                                },
-                                contentDescription = when {
-                                    addedToShelf -> "已加入书架"
-                                    sourceType == 1 -> "下载到书架"
-                                    else -> "加入书架"
-                                },
+                                if (addedToShelf) Icons.Default.Check
+                                else Icons.Default.Download,
+                                contentDescription = if (addedToShelf) "已加入书架"
+                                else "下载到书架",
                             )
                         }
                     }
@@ -180,14 +174,14 @@ fun BookDetailScreen(
                                                     color = MaterialTheme.colorScheme.onPrimary,
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
-                                                Text("下载中...")
+                                                Text(
+                                                    if (downloadProgress.isNotBlank()) "下载中 $downloadProgress"
+                                                    else "下载中..."
+                                                )
                                             } else {
                                                 Text(
-                                                    when {
-                                                        addedToShelf -> "已加入书架"
-                                                        sourceType == 1 -> "下载到书架"
-                                                        else -> "加入书架"
-                                                    }
+                                                    if (addedToShelf) "已加入书架"
+                                                    else "下载到书架"
                                                 )
                                             }
                                         }
