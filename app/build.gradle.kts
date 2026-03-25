@@ -16,8 +16,8 @@ android {
         applicationId = "com.linghualive.flamekit"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.4.1"
+        versionCode = 14
+        versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
