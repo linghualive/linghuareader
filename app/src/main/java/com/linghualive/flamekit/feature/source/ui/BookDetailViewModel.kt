@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linghualive.flamekit.feature.bookshelf.domain.model.Book
+import com.linghualive.flamekit.feature.bookshelf.domain.repository.BookRepository
 import com.linghualive.flamekit.feature.bookshelf.domain.usecase.ImportBookUseCase
 import com.linghualive.flamekit.feature.source.domain.model.BookDetail
 import com.linghualive.flamekit.feature.source.domain.repository.BookSourceRepository
@@ -26,6 +28,7 @@ class BookDetailViewModel @Inject constructor(
     private val sourceRepository: BookSourceRepository,
     private val sourceExecutor: SourceExecutor,
     private val importBookUseCase: ImportBookUseCase,
+    private val bookRepository: BookRepository,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -123,8 +126,14 @@ class BookDetailViewModel @Inject constructor(
                 val destFile = File(booksDir, fileName)
                 destFile.writeText(sb.toString())
 
-                val uri = Uri.fromFile(destFile)
-                importBookUseCase(uri)
+                val book = Book(
+                    title = bookDetail.name,
+                    author = bookDetail.author ?: "",
+                    filePath = Uri.fromFile(destFile).toString(),
+                    format = "txt",
+                    totalChapters = total,
+                )
+                bookRepository.addBook(book)
                 _addedToShelf.value = true
             } catch (e: Exception) {
                 _error.value = "下载失败：${e.message}"

@@ -48,6 +48,10 @@ class ImportBookUseCase @Inject constructor(
     }
 
     private fun getFileName(uri: Uri): String? {
+        // For file:// URIs, extract name from path directly
+        if (uri.scheme == "file") {
+            return uri.lastPathSegment
+        }
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         return cursor?.use {
             if (it.moveToFirst()) {
