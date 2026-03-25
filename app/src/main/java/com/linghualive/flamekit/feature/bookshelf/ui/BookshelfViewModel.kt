@@ -39,26 +39,14 @@ class BookshelfViewModel @Inject constructor(
     private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
     val books: StateFlow<List<Book>> = combine(
         getBooksUseCase(),
         _sortOrder,
-        _searchQuery,
-    ) { books, order, query ->
-        val filtered = if (query.isBlank()) {
-            books
-        } else {
-            books.filter {
-                it.title.contains(query, ignoreCase = true) ||
-                    it.author.contains(query, ignoreCase = true)
-            }
-        }
+    ) { books, order ->
         when (order) {
-            SortOrder.RECENT -> filtered.sortedByDescending { it.lastReadAt ?: 0L }
-            SortOrder.TITLE -> filtered.sortedBy { it.title }
-            SortOrder.ADDED -> filtered.sortedByDescending { it.addedAt }
+            SortOrder.RECENT -> books.sortedByDescending { it.lastReadAt ?: 0L }
+            SortOrder.TITLE -> books.sortedBy { it.title }
+            SortOrder.ADDED -> books.sortedByDescending { it.addedAt }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -90,10 +78,6 @@ class BookshelfViewModel @Inject constructor(
 
     fun updateSortOrder(order: SortOrder) {
         _sortOrder.value = order
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
     }
 
     fun importBook(uri: Uri) {

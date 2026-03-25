@@ -1,32 +1,20 @@
 package com.linghualive.flamekit.feature.bookshelf.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,13 +23,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.linghualive.flamekit.feature.bookshelf.ui.components.BookCard
@@ -63,7 +45,7 @@ import com.linghualive.flamekit.feature.update.ui.UpdateDialog
 fun BookshelfScreen(
     onBookClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
-    onSearchClick: (String) -> Unit = {},
+    onSearchClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = hiltViewModel(),
 ) {
@@ -71,17 +53,8 @@ fun BookshelfScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val availableUpdate by viewModel.availableUpdate.collectAsState()
     val sortOrder by viewModel.sortOrder.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
     val activeDownloads by viewModel.activeDownloads.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
-    var showSearchBar by remember { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
-
-    // Back press closes search bar first
-    BackHandler(enabled = showSearchBar) {
-        showSearchBar = false
-        viewModel.updateSearchQuery("")
-    }
 
     availableUpdate?.let { release ->
         UpdateDialog(
@@ -100,40 +73,10 @@ fun BookshelfScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = {
-                    AnimatedVisibility(visible = showSearchBar) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { viewModel.updateSearchQuery(it) },
-                            placeholder = { Text("搜索书架或在线搜索...") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(
-                                onSearch = {
-                                    if (searchQuery.isNotBlank()) {
-                                        onSearchClick(searchQuery)
-                                    }
-                                },
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
-                        )
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
-                    }
-                },
+                title = { },
                 actions = {
-                    if (!showSearchBar) {
-                        IconButton(onClick = { showSearchBar = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "搜索")
-                        }
-                    } else {
-                        IconButton(onClick = {
-                            showSearchBar = false
-                            viewModel.updateSearchQuery("")
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = "关闭搜索")
-                        }
+                    IconButton(onClick = onSearchClick) {
+                        Icon(Icons.Default.Search, contentDescription = "搜索")
                     }
                     Box {
                         IconButton(onClick = { showSortMenu = true }) {
@@ -209,30 +152,6 @@ fun BookshelfScreen(
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
-                books.isEmpty() && searchQuery.isNotBlank() -> {
-                    // No local results, prompt online search
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            text = "书架中没有找到「$searchQuery」",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        OutlinedButton(onClick = { onSearchClick(searchQuery) }) {
-                            Icon(
-                                Icons.Default.TravelExplore,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 8.dp),
-                            )
-                            Text("在网上搜索「$searchQuery」")
-                        }
-                    }
-                }
                 books.isEmpty() -> {
                     EmptyBookshelf()
                 }
@@ -250,24 +169,6 @@ fun BookshelfScreen(
                                 onDelete = { viewModel.deleteBook(book) },
                                 downloadProgress = activeDownloads[book.id],
                             )
-                        }
-                        // Online search entry at the bottom when searching
-                        if (searchQuery.isNotBlank()) {
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                OutlinedButton(
-                                    onClick = { onSearchClick(searchQuery) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.TravelExplore,
-                                        contentDescription = null,
-                                        modifier = Modifier.padding(end = 8.dp),
-                                    )
-                                    Text("在网上搜索「$searchQuery」")
-                                }
-                            }
                         }
                     }
                 }
