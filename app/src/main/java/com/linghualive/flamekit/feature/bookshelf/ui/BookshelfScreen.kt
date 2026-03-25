@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SortByAlpha
@@ -49,7 +48,6 @@ fun BookshelfScreen(
     onBookClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     onSearchClick: () -> Unit = {},
-    onSourceManagerClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = hiltViewModel(),
 ) {
@@ -132,9 +130,6 @@ fun BookshelfScreen(
                                 },
                             )
                         }
-                    }
-                    IconButton(onClick = onSourceManagerClick) {
-                        Icon(Icons.Default.Language, contentDescription = "书源管理")
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")

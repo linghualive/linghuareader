@@ -11,8 +11,6 @@ import com.linghualive.flamekit.feature.reader.ui.ReaderScreen
 import com.linghualive.flamekit.feature.settings.ui.SettingsScreen
 import com.linghualive.flamekit.feature.source.ui.BookDetailScreen
 import com.linghualive.flamekit.feature.source.ui.SearchScreen
-import com.linghualive.flamekit.feature.source.ui.SourceEditorScreen
-import com.linghualive.flamekit.feature.source.ui.SourceManagerScreen
 import com.linghualive.flamekit.feature.stats.ui.StatsScreen
 import com.linghualive.flamekit.feature.sync.ui.SyncScreen
 
@@ -30,7 +28,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 onBookClick = { bookId -> navController.navigate(Screen.Reader(bookId)) },
                 onSettingsClick = { navController.navigate(Screen.Settings) },
                 onSearchClick = { navController.navigate(Screen.Search()) },
-                onSourceManagerClick = { navController.navigate(Screen.SourceManager) },
             )
         }
         composable<Screen.Reader> { backStackEntry ->
@@ -45,22 +42,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 onBack = { navController.popBackStack() },
                 onStatsClick = { navController.navigate(Screen.Stats) },
                 onSyncClick = { navController.navigate(Screen.Sync) },
-            )
-        }
-        composable<Screen.SourceManager> {
-            SourceManagerScreen(
-                onBack = { navController.popBackStack() },
-                onEditSource = { sourceUrl ->
-                    navController.navigate(Screen.SourceEditor(sourceUrl))
-                },
-                onNewSource = {
-                    navController.navigate(Screen.SourceEditor())
-                },
-            )
-        }
-        composable<Screen.SourceEditor> {
-            SourceEditorScreen(
-                onNavigateBack = { navController.popBackStack() },
             )
         }
         composable<Screen.Search> {

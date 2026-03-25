@@ -13,9 +13,6 @@ sealed interface Screen {
     data object Settings : Screen
 
     @Serializable
-    data object SourceManager : Screen
-
-    @Serializable
     data class Search(val keyword: String = "") : Screen
 
     @Serializable
@@ -27,6 +24,4 @@ sealed interface Screen {
     @Serializable
     data object Sync : Screen
 
-    @Serializable
-    data class SourceEditor(val sourceUrl: String? = null) : Screen
 }

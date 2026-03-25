@@ -1,12 +1,15 @@
 package com.linghualive.flamekit.feature.source.ui
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linghualive.flamekit.feature.source.domain.model.BookSource
 import com.linghualive.flamekit.feature.source.domain.model.SearchResult
 import com.linghualive.flamekit.feature.source.domain.repository.BookSourceRepository
 import com.linghualive.flamekit.feature.source.engine.SourceExecutor
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,8 +30,10 @@ class SearchViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: BookSourceRepository,
     private val sourceExecutor: SourceExecutor,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
+    private val json = Json { ignoreUnknownKeys = true }
     private val initialKeyword: String = savedStateHandle["keyword"] ?: ""
 
     private val _query = MutableStateFlow(initialKeyword)
@@ -45,9 +51,32 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     init {
+        loadDefaultSourcesIfNeeded()
         if (initialKeyword.isNotBlank()) {
             search(initialKeyword)
         }
+    }
+
+    private fun loadDefaultSourcesIfNeeded() {
+        viewModelScope.launch {
+            try {
+                val prefs = context.getSharedPreferences("source_prefs", Context.MODE_PRIVATE)
+                val storedVersion = prefs.getInt("default_sources_version", 0)
+                if (storedVersion < DEFAULT_SOURCES_VERSION) {
+                    val jsonStr = context.assets.open("default_sources.json")
+                        .bufferedReader().use { it.readText() }
+                    val sources = json.decodeFromString<List<BookSource>>(jsonStr)
+                    repository.addSources(sources)
+                    prefs.edit().putInt("default_sources_version", DEFAULT_SOURCES_VERSION).apply()
+                }
+            } catch (_: Exception) {
+                // ignore
+            }
+        }
+    }
+
+    companion object {
+        const val DEFAULT_SOURCES_VERSION = 2
     }
 
     fun updateQuery(newQuery: String) {
