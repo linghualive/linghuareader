@@ -76,7 +76,7 @@ fun BookshelfScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text("书架") },
+                title = { },
                 scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = onSearchClick) {
