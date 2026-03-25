@@ -3,4 +3,7 @@
     <cache-path
         name="backup"
         path="/" />
+    <cache-path
+        name="updates"
+        path="updates/" />
 </paths>
